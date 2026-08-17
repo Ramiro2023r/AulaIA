@@ -1,0 +1,40 @@
+# ============================================
+# AulaIA — Sistema Inteligente de Asistencia Escolar
+# Archivo de ignorados de Git
+# ============================================
+
+# Variables de entorno
+# Nunca subir secretos al repositorio.
+.env
+.env.*
+!.env.example
+
+# Frontend Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+
+# Backend Spring Boot
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# Data Science / FastAPI
+data-science/.venv/
+data-science/venv/
+data-science/__pycache__/
+data-science/.pytest_cache/
+data-science/.ruff_cache/
+
+# IDEs
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

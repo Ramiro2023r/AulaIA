@@ -1,0 +1,45 @@
+# ============================================
+# AulaIA — Docker Compose (BASE / PLACEHOLDER)
+# ============================================
+#
+# ESTADO ACTUAL: Sprint 0 — Preparación del proyecto.
+#
+# Este archivo es únicamente un placeholder documentado.
+# Los servicios Docker completos se implementarán en
+# sprints posteriores (Sprint 19 — Docker y entorno local),
+# siguiendo DOCKERIZACION_AulaIA.md.
+#
+# Servicios previstos (documento de referencia):
+#
+#   postgres   — PostgreSQL 17 (persistencia con volumen)
+#   backend    — Spring Boot (Java 21), Flyway + PostgreSQL
+#   fastapi    — Servicio de IA (Python 3.12 / FastAPI)
+#   frontend   — Angular (Nginx para producción)
+#
+# Configuración final esperada:
+#
+#   services:
+#     postgres:
+#       image: postgres:17-alpine
+#     backend:
+#       build: ./backend
+#     fastapi:
+#       build: ./data-science
+#     frontend:
+#       build: ./frontend
+#
+# Variables requeridas (definidas en .env / .env.example):
+#   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
+#   DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD,
+#   JWT_SECRET, IA_SERVICE_URL
+#
+# Regla de red: dentro de Docker los servicios se comunican
+# por hostname de servicio (postgres, fastapi), nunca por
+# localhost. El navegador del usuario usa localhost para el
+# frontend y el backend.
+#
+# Nada que ejecutar todavía:
+#   docker compose up  ->  sin servicios definidos
+# ============================================
+
+services: {}
