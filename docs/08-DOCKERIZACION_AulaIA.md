@@ -977,14 +977,14 @@ Revisar `window.speechSynthesis`, volumen, navegador y configuración de idioma.
 Estás trabajando en AulaIA.
 
 Lee primero:
-- PRD
-- TRD
-- ARQUITECTURA
-- BASE DE DATOS
-- UI/UX
-- FLUJOS
-- PLAN DE EJECUCIÓN
-- DOCKERIZACION_AulaIA.md
+- 01-PRD_AulaIA.docx
+- 02-TRD_AulaIA.docx
+- 03-ARQUITECTURA_AulaIA.md
+- 04-BASE_DE_DATOS_AulaIA.md
+- 05-UI_UX_AulaIA.md
+- 06-FLUJOS_AulaIA.md
+- 07-PLAN_EJECUCION_AulaIA.md
+- 08-DOCKERIZACION_AulaIA.md
 
 TAREA:
 Implementa únicamente la dockerización del backend Spring Boot.

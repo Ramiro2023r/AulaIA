@@ -39,13 +39,14 @@ Cada prompt de este documento está diseñado para ser enviado de forma independ
 La IA debe conservar el contexto del proyecto y respetar los documentos:
 
 ```text
-PRD
-TRD
-ARQUITECTURA.md
-BASE_DE_DATOS_AulaIA.md
-UI_UX_AulaIA.md
-FLUJOS_AulaIA.md
-PLAN_EJECUCION_AulaIA.md
+01-PRD_AulaIA.docx
+02-TRD_AulaIA.docx
+03-ARQUITECTURA_AulaIA.md
+04-BASE_DE_DATOS_AulaIA.md
+05-UI_UX_AulaIA.md
+06-FLUJOS_AulaIA.md
+07-PLAN_EJECUCION_AulaIA.md
+08-DOCKERIZACION_AulaIA.md
 ```
 
 ---
@@ -91,20 +92,24 @@ SPRINT 3  — Estructura académica
 SPRINT 4  — Estudiantes y QR
 SPRINT 5  — Docentes y horarios
 SPRINT 6  — Sesiones de clase
-SPRINT 7  — Asistencia
+SPRINT 7  — Núcleo de asistencia
 SPRINT 8  — Frontend Angular base
-SPRINT 9  — Modo Aula y cámara QR
-SPRINT 10 — Voz y experiencia estudiante
-SPRINT 11 — Dashboard docente
-SPRINT 12 — Administración
-SPRINT 13 — Justificaciones y auditoría
-SPRINT 14 — Reportes
-SPRINT 15 — FastAPI e IA
-SPRINT 16 — Integración completa
-SPRINT 17 — Testing integral
-SPRINT 18 — Docker y CI/CD
-SPRINT 19 — Preparación para producción
-SPRINT 20 — Piloto y cierre técnico
+SPRINT 9  — Login y seguridad frontend
+SPRINT 10 — Modo Aula y QR
+SPRINT 11 — Voz y experiencia del estudiante
+SPRINT 12 — Dashboard docente
+SPRINT 13 — Administración frontend
+SPRINT 14 — Justificaciones y auditoría
+SPRINT 15 — Reportes
+SPRINT 16 — FastAPI e IA
+SPRINT 17 — Consultas inteligentes
+SPRINT 18 — Testing integral
+SPRINT 19 — Docker y entorno local
+SPRINT 20 — CI/CD
+SPRINT 21 — Preparación para producción
+SPRINT 22 — Despliegue
+SPRINT 23 — Piloto y validación final
+SPRINT 24 — Mejoras post-MVP
 ```
 
 ---
@@ -380,7 +385,7 @@ Ejecuta backend y valida que Swagger cargue correctamente.
 ## Prompt 2.1 — Modelo Usuario
 
 ```text
-Implementa la entidad Usuario según BASE_DE_DATOS_AulaIA.md.
+Implementa la entidad Usuario según 04-BASE_DE_DATOS_AulaIA.md.
 
 Campos principales:
 
@@ -1154,7 +1159,7 @@ tests
 ## Prompt 8.2 — Design tokens
 
 ```text
-Implementa los design tokens definidos en UI_UX_AulaIA.md.
+Implementa los design tokens definidos en 05-UI_UX_AulaIA.md.
 
 Incluye:
 
@@ -1651,7 +1656,7 @@ Implementa módulo Auditoría.
 Entidad:
 Auditoria
 
-Campos según BASE_DE_DATOS_AulaIA.md.
+Campos según 04-BASE_DE_DATOS_AulaIA.md.
 
 Crear AuditService reutilizable.
 

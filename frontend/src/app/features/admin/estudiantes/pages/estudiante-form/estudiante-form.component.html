@@ -1,0 +1,69 @@
+<app-page-header 
+  [title]="isEdit() ? 'Editar Estudiante' : 'Nuevo Estudiante'">
+</app-page-header>
+
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant mt-6 p-6 max-w-3xl">
+  
+  <div *ngIf="loading() && isEdit()" class="text-center py-8 text-on-surface-variant">
+    Cargando datos del estudiante...
+  </div>
+
+  <form *ngIf="!(loading() && isEdit())" [formGroup]="form" (ngSubmit)="guardar()" class="space-y-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Código -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Código del Estudiante *</label>
+        <input type="text" formControlName="codigo" class="input-text w-full" placeholder="Ej: 20261001"
+          [class.border-error]="form.get('codigo')?.invalid && form.get('codigo')?.touched">
+        <div *ngIf="form.get('codigo')?.invalid && form.get('codigo')?.touched" class="text-error text-xs mt-1">
+          El código es requerido y máximo 50 caracteres.
+        </div>
+      </div>
+
+      <!-- Sección -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Sección *</label>
+        <select formControlName="seccionId" class="input-text w-full"
+          [class.border-error]="form.get('seccionId')?.invalid && form.get('seccionId')?.touched">
+          <option [ngValue]="null">Seleccione una sección...</option>
+          <option *ngFor="let sec of secciones()" [ngValue]="sec.id">{{ sec.grado.nombre }} - {{ sec.nombre }}</option>
+        </select>
+        <div *ngIf="form.get('seccionId')?.invalid && form.get('seccionId')?.touched" class="text-error text-xs mt-1">
+          La sección es requerida.
+        </div>
+      </div>
+
+      <!-- Nombres -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Nombres *</label>
+        <input type="text" formControlName="nombres" class="input-text w-full" placeholder="Nombres del estudiante"
+          [class.border-error]="form.get('nombres')?.invalid && form.get('nombres')?.touched">
+        <div *ngIf="form.get('nombres')?.invalid && form.get('nombres')?.touched" class="text-error text-xs mt-1">
+          El nombre es requerido y máximo 120 caracteres.
+        </div>
+      </div>
+
+      <!-- Apellidos -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Apellidos *</label>
+        <input type="text" formControlName="apellidos" class="input-text w-full" placeholder="Apellidos del estudiante"
+          [class.border-error]="form.get('apellidos')?.invalid && form.get('apellidos')?.touched">
+        <div *ngIf="form.get('apellidos')?.invalid && form.get('apellidos')?.touched" class="text-error text-xs mt-1">
+          Los apellidos son requeridos y máximo 120 caracteres.
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="pt-4 flex justify-end gap-3 border-t border-outline-variant mt-6">
+      <button type="button" class="btn btn-secondary" routerLink="/admin/estudiantes">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading()">
+        {{ loading() ? 'Guardando...' : 'Guardar Estudiante' }}
+      </button>
+    </div>
+
+  </form>
+
+</div>

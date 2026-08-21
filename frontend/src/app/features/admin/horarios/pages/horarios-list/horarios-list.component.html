@@ -1,0 +1,110 @@
+<app-page-header title="Gestión de Horarios">
+  <div class="flex items-center gap-3">
+    <!-- View Toggle -->
+    <div class="bg-surface-container-light rounded-lg p-1 flex border border-outline-variant">
+      <button class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+              [ngClass]="viewMode() === 'semana' ? 'bg-surface shadow-sm text-primary' : 'text-on-surface-variant hover:text-on-surface'"
+              (click)="viewMode.set('semana')">
+        <span class="material-symbols-rounded text-[18px]">calendar_view_week</span>
+        Semana
+      </button>
+      <button class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+              [ngClass]="viewMode() === 'lista' ? 'bg-surface shadow-sm text-primary' : 'text-on-surface-variant hover:text-on-surface'"
+              (click)="viewMode.set('lista')">
+        <span class="material-symbols-rounded text-[18px]">list</span>
+        Lista
+      </button>
+    </div>
+    
+    <button class="btn btn-primary flex items-center" (click)="crearHorario()">
+      <span class="material-symbols-rounded text-xl mr-2">add</span>
+      Nuevo Bloque
+    </button>
+  </div>
+</app-page-header>
+
+<div class="mt-6">
+  <div *ngIf="loading()" class="text-center py-12 text-on-surface-variant bg-surface rounded-xl border border-outline-variant">
+    Cargando horarios...
+  </div>
+
+  <!-- Vista Lista -->
+  <div *ngIf="!loading() && viewMode() === 'lista'" class="bg-surface rounded-xl shadow-sm border border-outline-variant p-4">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[800px]">
+        <thead>
+          <tr class="border-b border-outline-variant text-on-surface-variant text-sm bg-surface-container-light">
+            <th class="p-3 font-medium">Día</th>
+            <th class="p-3 font-medium">Horario</th>
+            <th class="p-3 font-medium">Curso</th>
+            <th class="p-3 font-medium">Sección</th>
+            <th class="p-3 font-medium">Docente</th>
+            <th class="p-3 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="horarios().length === 0">
+            <td colspan="6" class="p-6 text-center text-on-surface-variant">No se encontraron horarios registrados.</td>
+          </tr>
+          <tr *ngFor="let h of horarios()" class="border-b border-outline-variant hover:bg-surface-container-light transition-colors">
+            <td class="p-3 font-medium text-on-surface">{{ getNombreDia(h.diaSemana) }}</td>
+            <td class="p-3 font-mono text-sm text-on-surface-variant bg-surface-container/50 px-2 rounded w-max inline-block mt-2">
+              {{ formatTime(h.horaInicio) }} - {{ formatTime(h.horaFin) }}
+            </td>
+            <td class="p-3 text-on-surface">{{ h.curso.nombre }}</td>
+            <td class="p-3 text-on-surface">{{ h.seccion.nombre }}</td>
+            <td class="p-3 text-on-surface">{{ h.docente.apellidos }}, {{ h.docente.nombres }}</td>
+            <td class="p-3 text-right">
+              <button class="btn btn-text text-primary w-10 h-10 p-0 rounded-full hover:bg-primary/10" (click)="editarHorario(h.id)" title="Editar">
+                <span class="material-symbols-rounded">edit</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Vista Semanal -->
+  <div *ngIf="!loading() && viewMode() === 'semana'" class="bg-surface rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+    <div class="grid-horario border-b border-outline-variant">
+      <!-- Headers de Día -->
+      <div class="grid-header border-r border-outline-variant bg-surface-container flex items-center justify-center">
+        <span class="material-symbols-rounded text-on-surface-variant">schedule</span>
+      </div>
+      <div *ngFor="let d of diasSemana" class="grid-header border-r border-outline-variant last:border-r-0">
+        {{ d }}
+      </div>
+    </div>
+    <div class="grid-horario" style="min-height: 400px; align-items: stretch;">
+      <!-- Columna simulada de tiempo (vacía, solo padding) -->
+      <div class="grid-cell border-r border-outline-variant bg-surface-container/30"></div>
+      
+      <!-- Columnas de días (1 a 7) -->
+      <div *ngFor="let dia of [1,2,3,4,5,6,7]" class="grid-cell border-r border-outline-variant last:border-r-0 p-2 flex flex-col gap-2">
+        <div *ngIf="horariosPorDia().get(dia)?.length === 0" class="text-xs text-center text-on-surface-variant/50 mt-4 font-medium italic">
+          Sin clases
+        </div>
+        
+        <div *ngFor="let h of horariosPorDia().get(dia)" 
+             class="horario-card shadow-sm"
+             (click)="editarHorario(h.id)"
+             title="Editar bloque">
+          <div class="font-bold mb-1 border-b border-primary/20 pb-1 flex justify-between items-center">
+            <span>{{ h.curso.nombre }}</span>
+            <span class="text-[10px] bg-surface/30 px-1 rounded">{{ h.seccion.nombre }}</span>
+          </div>
+          <div class="text-[11px] font-mono mb-1 flex items-center gap-1 opacity-90">
+            <span class="material-symbols-rounded text-[12px]">schedule</span>
+            {{ formatTime(h.horaInicio) }} - {{ formatTime(h.horaFin) }}
+          </div>
+          <div class="text-[11px] truncate flex items-center gap-1 opacity-90">
+             <span class="material-symbols-rounded text-[12px]">person</span>
+             {{ h.docente.apellidos }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

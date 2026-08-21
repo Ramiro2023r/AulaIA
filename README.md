@@ -72,6 +72,22 @@ aulaia/
 
 > `docs/` es la **fuente oficial** de decisiones del proyecto (PRD, TRD, Arquitectura, Base de Datos, UI/UX, Flujos, Plan de Ejecución, Dockerización).
 
+## Documentación oficial
+
+Los documentos dentro de `/docs` constituyen la fuente de verdad del proyecto.
+
+Los archivos `.md` son la referencia principal para agentes de IA. Los `.docx` se conservan como versiones documentales.
+
+En caso de conflicto:
+
+1. PRD define qué debe hacer el producto.
+2. TRD y Arquitectura definen cómo se construye.
+3. Base de Datos define la persistencia.
+4. UI/UX define la experiencia visual.
+5. Flujos define el comportamiento.
+6. Plan de Ejecución define el orden de implementación.
+7. Dockerización define el entorno de contenedores.
+
 ## Módulos principales
 
 - **Modo Aula:** registro rápido de asistencia por QR (cámara) o código manual, con confirmación visual y por voz.
@@ -84,7 +100,7 @@ aulaia/
 
 ## Estrategia de desarrollo por sprints
 
-Desarrollo incremental, un prompt/tarea por sprint, siguiendo `docs/PLAN_EJECUCION_AulaIA.md`:
+Desarrollo incremental, un prompt/tarea por sprint, siguiendo `docs/07-PLAN_EJECUCION_AulaIA.md`:
 
 ```text
 SPRINT 0  — Preparación del proyecto
@@ -94,20 +110,24 @@ SPRINT 3  — Estructura académica
 SPRINT 4  — Estudiantes y QR
 SPRINT 5  — Docentes y horarios
 SPRINT 6  — Sesiones de clase
-SPRINT 7  — Asistencia
+SPRINT 7  — Núcleo de asistencia
 SPRINT 8  — Frontend Angular base
-SPRINT 9  — Modo Aula y cámara QR
-SPRINT 10 — Voz y experiencia estudiante
-SPRINT 11 — Dashboard docente
-SPRINT 12 — Administración
-SPRINT 13 — Justificaciones y auditoría
-SPRINT 14 — Reportes
-SPRINT 15 — FastAPI e IA
-SPRINT 16 — Integración completa
-SPRINT 17 — Testing integral
-SPRINT 18 — Docker y CI/CD
-SPRINT 19 — Preparación para producción
-SPRINT 20 — Piloto y cierre técnico
+SPRINT 9  — Login y seguridad frontend
+SPRINT 10 — Modo Aula y QR
+SPRINT 11 — Voz y experiencia del estudiante
+SPRINT 12 — Dashboard docente
+SPRINT 13 — Administración frontend
+SPRINT 14 — Justificaciones y auditoría
+SPRINT 15 — Reportes
+SPRINT 16 — FastAPI e IA
+SPRINT 17 — Consultas inteligentes
+SPRINT 18 — Testing integral
+SPRINT 19 — Docker y entorno local
+SPRINT 20 — CI/CD
+SPRINT 21 — Preparación para producción
+SPRINT 22 — Despliegue
+SPRINT 23 — Piloto y validación final
+SPRINT 24 — Mejoras post-MVP
 ```
 
 ## Estado actual del desarrollo

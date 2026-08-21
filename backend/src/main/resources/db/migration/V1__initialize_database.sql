@@ -1,0 +1,20 @@
+-- ============================================================
+-- AulaIA — Migración V1: infraestructura base
+-- ============================================================
+-- Esta migración NO crea tablas funcionales del dominio.
+-- Su propósito es establecer la línea base del esquema de
+-- Flyway (flyway_schema_history) antes de las migraciones
+-- funcionales del dominio (docs/04-BASE_DE_DATOS):
+--
+--   V2__create_usuarios.sql
+--   V3__create_academic_structure.sql
+--   V4__create_estudiantes.sql
+--   V5__create_horarios.sql
+--   V6__create_sesiones_clase.sql
+--   V7__create_asistencias.sql
+--   V8__create_justificaciones.sql
+--   V9__create_auditoria.sql
+--   V10__create_indexes.sql
+--
+-- Las migraciones funcionales se crearán en sprints posteriores.
+-- ============================================================

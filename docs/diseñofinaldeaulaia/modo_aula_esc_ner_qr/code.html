@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AulaIA - Escáner QR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-low": "#f2f3ff",
+                        "primary-fixed": "#dbe1ff",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#dae2fd",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary-container": "#996100",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#784b00",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#283044",
+                        "outline": "#737686",
+                        "on-primary-container": "#eeefff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-on-surface": "#eef0ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-background": "#131b2e",
+                        "surface-bright": "#faf8ff",
+                        "primary-container": "#2563eb",
+                        "on-surface": "#131b2e",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#faf8ff",
+                        "on-surface-variant": "#434655",
+                        "background": "#faf8ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-secondary-fixed": "#002113",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#005236",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-error-container": "#93000a",
+                        "primary": "#004ac6",
+                        "secondary-container": "#6cf8bb",
+                        "on-tertiary-fixed": "#2a1700",
+                        "outline-variant": "#c3c6d7",
+                        "surface-tint": "#0053db",
+                        "surface-container-highest": "#dae2fd",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#00714d",
+                        "tertiary-fixed": "#ffddb8",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container": "#eaedff",
+                        "secondary": "#006c49",
+                        "on-tertiary-container": "#ffeedd",
+                        "surface-dim": "#d2d9f4",
+                        "surface-container-high": "#e2e7ff",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "xxl": "48px",
+                        "base": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "display": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scan-line {
+            animation: scan 2.5s infinite linear;
+        }
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface h-screen flex flex-col font-body-md text-body-md overflow-hidden">
+<!-- Minimal Header for Fullscreen Mode -->
+<header class="flex justify-between items-center w-full px-lg py-md shrink-0">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-headline-lg text-headline-lg font-bold text-primary">AulaIA</span>
+</div>
+<button aria-label="Cerrar modo escáner" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+</button>
+</header>
+<!-- Main Scanner Area -->
+<main class="flex-1 flex flex-col items-center justify-center px-md pb-xxl relative z-10">
+<!-- Contextual Information -->
+<div class="flex flex-wrap items-center justify-center gap-sm mb-lg">
+<div class="bg-surface-container text-on-surface px-md py-sm rounded-full font-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">menu_book</span>
+                COMPUTACIÓN
+            </div>
+<div class="bg-surface-container text-on-surface px-md py-sm rounded-full font-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">groups</span>
+                6.º Primaria — A
+            </div>
+</div>
+<!-- Huge Title -->
+<h1 class="font-display text-display text-on-surface mb-xl text-center max-w-2xl">Escanea tu código QR</h1>
+<!-- Camera Area -->
+<div class="relative w-72 h-72 md:w-96 md:h-96 rounded-xl overflow-hidden bg-inverse-surface shadow-lg flex items-center justify-center">
+<!-- Simulated Camera Feed -->
+<img class="absolute inset-0 w-full h-full object-cover opacity-60" data-alt="A brightly lit, modern elementary school classroom viewed through a wide-angle camera lens. Soft natural light streams in from the side. In the blurred background, tidy desks and colorful educational posters are visible. The focus is slightly deep, simulating a device's camera feed ready to scan a student's ID card. The aesthetic is clean, structured, and encouraging, adhering to a high-key light mode corporate educational style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL4xnI_CJo-QEiR3-4bnTgC-kKG05MNBqDCrNiM_DHgWIFRwQyJYOVLLZ06XosTvzcBc4GUEiStJTjd_r2QDsqDA_6Fb2xMU35IbGdPK9KCOmXwUbCTTUKNBvow5FcsfLCe0booJ2d_yd4d8vuvvO-z7pu6dzXL3F81tOz13ZOfwxvS9Kv-URI6nBF1HEqKSrAuhJeSYIQs7d0xM-3kaBBXUbDqZauNn4CRhFnEDYVD05OExMsOc5SMA"/>
+<!-- Scanning Overlay -->
+<div class="absolute inset-0 z-10 p-md flex flex-col justify-between">
+<!-- Top Corner Brackets -->
+<div class="flex justify-between">
+<div class="w-12 h-12 border-t-4 border-l-4 border-primary-container rounded-tl-lg"></div>
+<div class="w-12 h-12 border-t-4 border-r-4 border-primary-container rounded-tr-lg"></div>
+</div>
+<!-- Bottom Corner Brackets -->
+<div class="flex justify-between">
+<div class="w-12 h-12 border-b-4 border-l-4 border-primary-container rounded-bl-lg"></div>
+<div class="w-12 h-12 border-b-4 border-r-4 border-primary-container rounded-br-lg"></div>
+</div>
+</div>
+<!-- Animated Scan Line -->
+<div class="scan-line absolute left-0 right-0 h-1 bg-primary-container shadow-[0_0_8px_2px_rgba(37,99,235,0.5)] z-20"></div>
+</div>
+<!-- Subtext -->
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-lg text-center">Acerca tu código al recuadro</p>
+<!-- Secondary Action -->
+<button class="mt-xxl h-11 px-lg bg-surface-container-lowest text-on-surface font-label-md border border-outline-variant rounded-lg hover:bg-surface-container hover:border-outline transition-all flex items-center gap-sm shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-[20px]">keyboard</span>
+            Ingresar código manual
+        </button>
+</main>
+<!-- Subtle Background Elements for depth (Level 0 Canvas) -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute -top-32 -left-32 w-96 h-96 bg-primary-fixed-dim opacity-20 rounded-full blur-3xl"></div>
+<div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-secondary-container opacity-10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+</div>
+</body></html>

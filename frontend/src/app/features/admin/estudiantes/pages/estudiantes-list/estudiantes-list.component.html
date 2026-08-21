@@ -1,0 +1,72 @@
+<app-page-header title="Gestión de Estudiantes">
+  <button class="btn btn-primary" (click)="crearEstudiante()">
+    <span class="material-symbols-rounded text-xl mr-2">add</span>
+    Nuevo Estudiante
+  </button>
+</app-page-header>
+
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant mt-6 p-4">
+  
+  <!-- Filters -->
+  <div class="flex flex-col md:flex-row gap-4 mb-6">
+    <div class="flex-1">
+      <label class="block text-sm font-medium text-on-surface-variant mb-1">Buscar</label>
+      <input type="text" class="input-text w-full" placeholder="Nombre o código..." [ngModel]="filterQuery()" (ngModelChange)="filterQuery.set($event)" (keyup.enter)="aplicarFiltros()">
+    </div>
+    <div class="w-full md:w-64">
+      <label class="block text-sm font-medium text-on-surface-variant mb-1">Sección</label>
+      <select class="input-text w-full" [ngModel]="filterSeccion()" (ngModelChange)="filterSeccion.set($event)">
+        <option [value]="null">Todas</option>
+        <option *ngFor="let sec of secciones()" [value]="sec.id">{{ sec.grado.nombre }} - {{ sec.nombre }}</option>
+      </select>
+    </div>
+    <div class="flex items-end gap-2">
+      <button class="btn btn-secondary h-11" (click)="aplicarFiltros()">Filtrar</button>
+      <button class="btn btn-text h-11" (click)="limpiarFiltros()">Limpiar</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[800px]">
+      <thead>
+        <tr class="border-b border-outline-variant text-on-surface-variant text-sm bg-surface-container-light">
+          <th class="p-3 font-medium">Código</th>
+          <th class="p-3 font-medium">Estudiante</th>
+          <th class="p-3 font-medium">Sección</th>
+          <th class="p-3 font-medium">Estado</th>
+          <th class="p-3 font-medium text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading()">
+          <td colspan="5" class="p-6 text-center text-on-surface-variant">Cargando estudiantes...</td>
+        </tr>
+        <tr *ngIf="!loading() && estudiantes().length === 0">
+          <td colspan="5" class="p-6 text-center text-on-surface-variant">No se encontraron estudiantes con los filtros actuales.</td>
+        </tr>
+        <tr *ngFor="let est of estudiantes()" class="border-b border-outline-variant hover:bg-surface-container-light transition-colors cursor-pointer" (click)="verDetalle(est.id)">
+          <td class="p-3 text-on-surface text-sm font-mono">{{ est.codigo }}</td>
+          <td class="p-3">
+            <div class="font-medium text-on-surface">{{ est.apellidos }}, {{ est.nombres }}</div>
+          </td>
+          <td class="p-3 text-on-surface text-sm">{{ est.seccion.nombre }}</td>
+          <td class="p-3">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" 
+                  [ngClass]="est.activo ? 'bg-success/20 text-success' : 'bg-error/20 text-error'">
+              {{ est.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="p-3 text-right">
+            <button class="btn btn-text text-primary w-10 h-10 p-0 rounded-full hover:bg-primary/10" (click)="editarEstudiante(est.id, $event)" title="Editar">
+              <span class="material-symbols-rounded">edit</span>
+            </button>
+            <button *ngIf="est.activo" class="btn btn-text text-error w-10 h-10 p-0 rounded-full hover:bg-error/10 ml-2" (click)="desactivarEstudiante(est.id, $event)" title="Desactivar">
+              <span class="material-symbols-rounded">block</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

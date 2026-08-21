@@ -1,0 +1,9 @@
+<button
+  [type]="type"
+  [class]="classes"
+  [disabled]="disabled || loading"
+>
+  <span *ngIf="loading" class="material-symbols-outlined animate-spin mr-2 text-[1.2em]">progress_activity</span>
+  <span *ngIf="icon && !loading" class="material-symbols-outlined mr-2 text-[1.2em]">{{ icon }}</span>
+  <ng-content></ng-content>
+</button>

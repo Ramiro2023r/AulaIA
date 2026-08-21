@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AulaIA - Iniciar sesión</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-container-low": "#f2f3ff",
+                        "primary-fixed": "#dbe1ff",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#dae2fd",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary-container": "#996100",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#784b00",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#283044",
+                        "outline": "#737686",
+                        "on-primary-container": "#eeefff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "inverse-on-surface": "#eef0ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-background": "#131b2e",
+                        "surface-bright": "#faf8ff",
+                        "primary-container": "#2563eb",
+                        "on-surface": "#131b2e",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#faf8ff",
+                        "on-surface-variant": "#434655",
+                        "background": "#faf8ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-secondary-fixed": "#002113",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#005236",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-error-container": "#93000a",
+                        "primary": "#004ac6",
+                        "secondary-container": "#6cf8bb",
+                        "on-tertiary-fixed": "#2a1700",
+                        "outline-variant": "#c3c6d7",
+                        "surface-tint": "#0053db",
+                        "surface-container-highest": "#dae2fd",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#00714d",
+                        "tertiary-fixed": "#ffddb8",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container": "#eaedff",
+                        "secondary": "#006c49",
+                        "on-tertiary-container": "#ffeedd",
+                        "surface-dim": "#d2d9f4",
+                        "surface-container-high": "#e2e7ff",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "16px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "24px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "xxl": "48px",
+                        "base": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Ambient SaaS Background Orbs */
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite alternate;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -50px) scale(1.1); }
+            100% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex items-center justify-center relative overflow-hidden font-body-md antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Decorative Background Elements -->
+<div class="ambient-orb bg-primary-container w-[400px] h-[400px] top-[-100px] left-[-100px]"></div>
+<div class="ambient-orb bg-surface-variant w-[500px] h-[500px] bottom-[-150px] right-[-100px]" style="animation-delay: -5s;"></div>
+<div class="ambient-orb bg-surface-dim w-[300px] h-[300px] top-[20%] right-[10%]" style="animation-delay: -10s; opacity: 0.3;"></div>
+<!-- Main Login Card -->
+<main class="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] border border-outline-variant p-xl relative z-10 mx-container-margin flex flex-col backdrop-blur-sm">
+<!-- Header -->
+<header class="flex flex-col items-center mb-xl">
+<div class="flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-primary text-[40px] mr-sm" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight">AulaIA</h1>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface text-center">Bienvenido nuevamente</h2>
+<p class="font-body-md text-body-md text-on-surface-variant text-center mt-sm">Ingrese sus credenciales para acceder al portal.</p>
+</header>
+<!-- Login Form -->
+<form action="#" class="flex flex-col gap-lg" method="POST">
+<!-- Usuario Field -->
+<div class="flex flex-col gap-sm">
+<label class="font-label-md text-label-md text-on-surface" for="usuario">Usuario</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-md text-on-surface-variant pointer-events-none">person</span>
+<input class="w-full h-[48px] rounded-DEFAULT border border-outline-variant bg-surface-container-lowest pl-[48px] pr-md font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline" id="usuario" name="usuario" placeholder="Ingrese su usuario" required="" type="text"/>
+</div>
+</div>
+<!-- Contraseña Field -->
+<div class="flex flex-col gap-sm">
+<label class="font-label-md text-label-md text-on-surface" for="contrasena">Contraseña</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-md text-on-surface-variant pointer-events-none">lock</span>
+<input class="w-full h-[48px] rounded-DEFAULT border border-outline-variant bg-surface-container-lowest pl-[48px] pr-md font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline" id="contrasena" name="contrasena" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<!-- Options Row -->
+<div class="flex items-center justify-between mt-sm">
+<!-- Recordarme Checkbox (Ensure adequate touch target) -->
+<label class="flex items-center group cursor-pointer min-h-[44px] min-w-[44px]">
+<div class="relative flex items-center justify-center mr-sm">
+<input class="peer appearance-none w-5 h-5 border border-outline-variant rounded-DEFAULT checked:bg-primary checked:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors cursor-pointer bg-surface-container-lowest" id="recordarme" name="recordarme" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-on-primary text-[16px] pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant select-none group-hover:text-on-surface transition-colors">Recordarme</span>
+</label>
+<a class="font-label-md text-label-md text-primary hover:text-on-primary-fixed-variant transition-colors min-h-[44px] flex items-center" href="#">¿Olvidó su contraseña?</a>
+</div>
+<!-- Submit Button -->
+<button class="w-full h-[48px] mt-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center justify-center hover:bg-[#003ea8] active:bg-[#003082] transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 shadow-sm" type="submit">
+                Iniciar sesión
+            </button>
+</form>
+<!-- Footer / Support -->
+<div class="mt-xl pt-lg border-t border-outline-variant/30 text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">help</span>
+                ¿Necesita ayuda? <a class="text-primary hover:underline ml-xs" href="#">Contactar soporte</a>
+</p>
+</div>
+</main>
+</body></html>

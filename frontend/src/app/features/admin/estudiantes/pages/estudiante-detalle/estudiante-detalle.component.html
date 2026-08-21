@@ -1,0 +1,93 @@
+<app-page-header 
+  title="Detalle del Estudiante">
+</app-page-header>
+
+<div *ngIf="loading()" class="text-center py-12 text-on-surface-variant">
+  Cargando información...
+</div>
+
+<div *ngIf="error()" class="text-center py-12 text-error">
+  No se pudo cargar la información del estudiante.
+</div>
+
+<ng-container *ngIf="estudiante() as est">
+  
+  <div class="mt-6">
+    <!-- Tabs -->
+    <div class="flex border-b border-outline-variant mb-6">
+      <button class="px-4 py-3 font-medium text-sm transition-colors border-b-2"
+        [ngClass]="activeTab() === 'datos' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-on-surface'"
+        (click)="setTab('datos')">
+        Datos Generales
+      </button>
+      <button class="px-4 py-3 font-medium text-sm transition-colors border-b-2"
+        [ngClass]="activeTab() === 'qr' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-on-surface'"
+        (click)="setTab('qr')">
+        Código QR
+      </button>
+    </div>
+
+    <!-- Tab Content: Datos -->
+    <div *ngIf="activeTab() === 'datos'" class="bg-surface rounded-xl shadow-sm border border-outline-variant p-6 max-w-3xl">
+      
+      <div class="flex justify-between items-start mb-6 border-b border-outline-variant pb-6">
+        <div>
+          <h2 class="text-2xl font-medium text-on-surface">{{ est.apellidos }}, {{ est.nombres }}</h2>
+          <p class="text-on-surface-variant mt-1 text-lg">{{ est.codigo }}</p>
+        </div>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" 
+          [ngClass]="est.activo ? 'bg-success/20 text-success' : 'bg-error/20 text-error'">
+          {{ est.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+        <div>
+          <h3 class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Sección Asignada</h3>
+          <p class="mt-1 text-on-surface">{{ est.seccion.nombre }}</p>
+        </div>
+        <div>
+          <h3 class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Fecha de Registro</h3>
+          <p class="mt-1 text-on-surface">{{ est.createdAt | date:'medium' }}</p>
+        </div>
+      </div>
+
+      <div class="mt-8 flex gap-3">
+        <a [routerLink]="['/admin/estudiantes', est.id, 'editar']" class="btn btn-secondary">Editar Datos</a>
+      </div>
+
+    </div>
+
+    <!-- Tab Content: QR -->
+    <div *ngIf="activeTab() === 'qr'" class="bg-surface rounded-xl shadow-sm border border-outline-variant p-6 max-w-3xl">
+      <div class="text-center py-6">
+        <h3 class="text-lg font-medium text-on-surface mb-4">Código QR de Acceso</h3>
+        <p class="text-on-surface-variant mb-6 max-w-md mx-auto">
+          Este código permite al estudiante registrar su asistencia a través de los dispositivos del colegio en el Modo Aula.
+        </p>
+        
+        <div class="inline-block p-4 bg-white border border-outline-variant rounded-xl mb-6 shadow-sm">
+          <img *ngIf="qrUrl()" [src]="qrUrl()" alt="QR Estudiante" class="w-64 h-64 object-contain">
+        </div>
+        
+        <div class="flex justify-center gap-4">
+          <button class="btn btn-secondary flex items-center gap-2" (click)="descargarQR()" [disabled]="isRegenerating()">
+            <span class="material-symbols-rounded text-[1.25rem]">download</span>
+            Descargar
+          </button>
+          <button class="btn btn-secondary flex items-center gap-2" (click)="imprimirQR()" [disabled]="isRegenerating()">
+            <span class="material-symbols-rounded text-[1.25rem]">print</span>
+            Imprimir
+          </button>
+          <button class="btn btn-primary flex items-center gap-2 bg-error hover:bg-error/90 text-white border-none" 
+                  (click)="regenerarQR()" [disabled]="isRegenerating()">
+            <span class="material-symbols-rounded text-[1.25rem]">{{ isRegenerating() ? 'hourglass_empty' : 'refresh' }}</span>
+            {{ isRegenerating() ? 'Regenerando...' : 'Regenerar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</ng-container>

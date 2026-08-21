@@ -1,0 +1,47 @@
+<app-page-header title="Gestión de Cursos">
+  <button class="btn btn-primary flex items-center" (click)="crearCurso()">
+    <span class="material-symbols-rounded text-xl mr-2">add</span>
+    Nuevo Curso
+  </button>
+</app-page-header>
+
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant mt-6 p-4">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[700px]">
+      <thead>
+        <tr class="border-b border-outline-variant text-on-surface-variant text-sm bg-surface-container-light">
+          <th class="p-3 font-medium">Nombre del Curso</th>
+          <th class="p-3 font-medium">Descripción</th>
+          <th class="p-3 font-medium">Estado</th>
+          <th class="p-3 font-medium text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading()">
+          <td colspan="4" class="p-6 text-center text-on-surface-variant">Cargando cursos...</td>
+        </tr>
+        <tr *ngIf="!loading() && cursos().length === 0">
+          <td colspan="4" class="p-6 text-center text-on-surface-variant">No se encontraron cursos.</td>
+        </tr>
+        <tr *ngFor="let curso of cursos()" class="border-b border-outline-variant hover:bg-surface-container-light transition-colors">
+          <td class="p-3 text-on-surface font-medium">{{ curso.nombre }}</td>
+          <td class="p-3 text-on-surface text-sm max-w-md truncate">{{ curso.descripcion }}</td>
+          <td class="p-3">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" 
+                  [ngClass]="curso.activo ? 'bg-success/20 text-success' : 'bg-error/20 text-error'">
+              {{ curso.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="p-3 text-right">
+            <button class="btn btn-text text-primary w-10 h-10 p-0 rounded-full hover:bg-primary/10" (click)="editarCurso(curso.id, $event)" title="Editar">
+              <span class="material-symbols-rounded">edit</span>
+            </button>
+            <button *ngIf="curso.activo" class="btn btn-text text-error w-10 h-10 p-0 rounded-full hover:bg-error/10 ml-2" (click)="desactivarCurso(curso.id, $event)" title="Desactivar">
+              <span class="material-symbols-rounded">block</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

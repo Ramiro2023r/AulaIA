@@ -1,0 +1,19 @@
+<div class="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+  @for (toast of toastService.toasts(); track trackById($index, toast)) {
+    <div
+      class="pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl border shadow-lg backdrop-blur-sm transition-all duration-300"
+      [ngClass]="colorMap[toast.type]"
+      role="alert"
+    >
+      <span class="material-symbols-outlined text-[20px] flex-shrink-0 mt-0.5">{{ iconMap[toast.type] }}</span>
+      <span class="flex-1 text-body-md font-medium">{{ toast.message }}</span>
+      <button
+        (click)="dismiss(toast.id)"
+        class="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+        aria-label="Cerrar"
+      >
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+  }
+</div>

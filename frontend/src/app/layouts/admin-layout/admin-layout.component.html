@@ -1,0 +1,32 @@
+<div class="bg-background text-on-background font-body-md antialiased h-screen overflow-hidden flex">
+
+  <!-- Sidebar: hidden on mobile (drawer), visible on md+ -->
+  <div class="hidden md:block w-64 flex-shrink-0">
+    <!-- placeholder to push main content on desktop -->
+  </div>
+
+  <app-sidebar
+    [isOpen]="sidebarOpen()"
+    (closed)="closeSidebar()"
+  ></app-sidebar>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+    
+    <app-header
+      [pageTitle]="pageTitle()"
+      (menuToggled)="toggleSidebar()"
+    ></app-header>
+
+    <!-- Scrollable content -->
+    <main class="flex-1 overflow-y-auto p-container-margin md:p-xl bg-background">
+      <div class="max-w-7xl mx-auto">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Toast notifications (global) -->
+  <app-toast></app-toast>
+</div>

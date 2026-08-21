@@ -1,0 +1,75 @@
+<!-- Mobile backdrop -->
+@if (isOpen) {
+  <div
+    class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+    (click)="onBackdropClick()"
+    aria-hidden="true"
+  ></div>
+}
+
+<!-- Sidebar Panel -->
+<nav
+  class="fixed left-0 top-0 h-screen z-50 flex flex-col py-md bg-white border-r border-outline-variant shadow-sm w-64 transition-transform duration-300"
+  [class.-translate-x-full]="!isOpen"
+  [class.translate-x-0]="isOpen"
+  [class.md:translate-x-0]="true"
+  role="navigation"
+  aria-label="Navegación principal"
+>
+  <!-- Logo -->
+  <div class="px-lg mb-xl flex items-center gap-md">
+    <span class="material-symbols-outlined text-primary text-3xl" data-weight="fill">school</span>
+    <div>
+      <div class="font-headline-md text-headline-md font-extrabold text-primary">AulaIA</div>
+      <div class="font-label-sm text-label-sm text-on-surface-variant">Admin Portal</div>
+    </div>
+    <!-- Close button (mobile only) -->
+    <button
+      class="ml-auto md:hidden flex items-center justify-center w-9 h-9 rounded-xl text-on-surface-variant hover:bg-surface-variant"
+      (click)="close()"
+      aria-label="Cerrar menú"
+    >
+      <span class="material-symbols-outlined text-[20px]">close</span>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <div class="flex-1 overflow-y-auto px-sm">
+    <ul class="space-y-1 list-none p-0 m-0">
+      @for (item of navItems; track item.route) {
+        <li>
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="bg-primary-container text-on-primary-container font-semibold"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container mx-2 my-1 rounded-lg scale-95 active:scale-90 transition-all no-underline"
+            (click)="close()"
+          >
+            <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+            <span class="font-label-md text-label-md">{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <!-- Footer area -->
+  <div class="px-md mt-auto pt-md border-t border-outline-variant">
+    <!-- Modo Aula CTA -->
+    <a
+      routerLink="/modo-aula"
+      class="w-full flex items-center justify-center gap-sm bg-primary-container text-on-primary-container font-label-md text-label-md py-md rounded-lg hover:bg-primary hover:text-white transition-colors mb-md min-h-[44px] no-underline"
+    >
+      <span class="material-symbols-outlined">cast_for_education</span>
+      Modo Aula
+    </a>
+
+    <!-- Logout -->
+    <button
+      class="flex items-center gap-md px-md py-sm w-full text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors"
+    >
+      <span class="material-symbols-outlined">logout</span>
+      <span class="font-label-md text-label-md">Cerrar sesión</span>
+    </button>
+  </div>
+</nav>

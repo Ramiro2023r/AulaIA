@@ -1,0 +1,131 @@
+<!-- Ambient SaaS Background Orbs -->
+<div class="bg-surface text-on-surface min-h-screen flex items-center justify-center relative overflow-hidden font-body-md antialiased">
+
+  <div class="ambient-orb bg-primary-container w-[400px] h-[400px] top-[-100px] left-[-100px]"></div>
+  <div class="ambient-orb bg-surface-variant w-[500px] h-[500px] bottom-[-150px] right-[-100px]" style="animation-delay: -5s;"></div>
+  <div class="ambient-orb bg-surface-dim w-[300px] h-[300px] top-[20%] right-[10%]" style="animation-delay: -10s; opacity: 0.3;"></div>
+
+  <!-- Login Card -->
+  <main
+    class="bg-surface-container-lowest w-full max-w-md rounded-xl shadow border border-outline-variant p-xl relative z-10 mx-container-margin flex flex-col backdrop-blur-sm"
+    role="main"
+  >
+    <!-- Header -->
+    <header class="flex flex-col items-center mb-xl">
+      <div class="flex items-center justify-center mb-md">
+        <span class="material-symbols-outlined text-primary text-[40px] mr-sm" style="font-variation-settings: 'FILL' 1;">psychology</span>
+        <h1 class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight">AulaIA</h1>
+      </div>
+      <h2 class="font-headline-md text-headline-md text-on-surface text-center">Bienvenido nuevamente</h2>
+      <p class="font-body-md text-body-md text-on-surface-variant text-center mt-sm">Ingrese sus credenciales para acceder al portal.</p>
+    </header>
+
+    <!-- Error alert -->
+    @if (errorMsg()) {
+      <div class="flex items-center gap-sm bg-error-container text-on-error-container rounded-lg px-md py-sm mb-lg border border-error/30" role="alert">
+        <span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span>
+        <span class="font-label-md text-label-md">{{ errorMsg() }}</span>
+      </div>
+    }
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-lg" novalidate>
+
+      <!-- Usuario -->
+      <div class="flex flex-col gap-sm">
+        <label for="usuario" class="font-label-md text-label-md text-on-surface font-semibold">Usuario</label>
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-md text-on-surface-variant pointer-events-none">person</span>
+          <input
+            id="usuario"
+            type="text"
+            formControlName="usuario"
+            placeholder="Ingrese su usuario"
+            autocomplete="username"
+            class="w-full h-[48px] rounded-lg border border-outline-variant bg-surface-container-lowest pl-[48px] pr-md font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline"
+            [class.border-error]="form.get('usuario')?.invalid && form.get('usuario')?.touched"
+            aria-describedby="usuario-error"
+          />
+        </div>
+        @if (form.get('usuario')?.invalid && form.get('usuario')?.touched) {
+          <span id="usuario-error" class="text-label-sm text-error flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[14px]">error</span>
+            El usuario es requerido.
+          </span>
+        }
+      </div>
+
+      <!-- Contraseña -->
+      <div class="flex flex-col gap-sm">
+        <label for="contrasena" class="font-label-md text-label-md text-on-surface font-semibold">Contraseña</label>
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-md text-on-surface-variant pointer-events-none">lock</span>
+          <input
+            id="contrasena"
+            [type]="showPass() ? 'text' : 'password'"
+            formControlName="contrasena"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            class="w-full h-[48px] rounded-lg border border-outline-variant bg-surface-container-lowest pl-[48px] pr-12 font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline"
+            [class.border-error]="form.get('contrasena')?.invalid && form.get('contrasena')?.touched"
+            aria-describedby="pass-error"
+          />
+          <button
+            type="button"
+            (click)="togglePass()"
+            class="absolute right-md text-on-surface-variant hover:text-on-surface transition-colors"
+            [attr.aria-label]="showPass() ? 'Ocultar contraseña' : 'Ver contraseña'"
+          >
+            <span class="material-symbols-outlined text-[20px]">{{ showPass() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        @if (form.get('contrasena')?.invalid && form.get('contrasena')?.touched) {
+          <span id="pass-error" class="text-label-sm text-error flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[14px]">error</span>
+            La contraseña es requerida.
+          </span>
+        }
+      </div>
+
+      <!-- Recordarme + olvido -->
+      <div class="flex items-center justify-between mt-sm">
+        <label class="flex items-center gap-sm cursor-pointer min-h-[44px]" for="recordarme">
+          <input
+            id="recordarme"
+            type="checkbox"
+            formControlName="recordarme"
+            class="w-5 h-5 border border-outline-variant rounded checked:bg-primary checked:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 cursor-pointer"
+          />
+          <span class="font-label-md text-label-md text-on-surface-variant select-none">Recordarme</span>
+        </label>
+        <a href="#" class="font-label-md text-label-md text-primary hover:underline min-h-[44px] flex items-center">
+          ¿Olvidó su contraseña?
+        </a>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [disabled]="loading()"
+        class="w-full h-[48px] mt-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center justify-center gap-sm hover:bg-primary/90 active:bg-primary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        @if (loading()) {
+          <span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+          Iniciando sesión...
+        } @else {
+          <span class="material-symbols-outlined text-[20px]">login</span>
+          Iniciar sesión
+        }
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="mt-xl pt-lg border-t border-outline-variant/30 text-center">
+      <p class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-center gap-xs">
+        <span class="material-symbols-outlined text-[16px]">help</span>
+        ¿Necesita ayuda?
+        <a href="#" class="text-primary hover:underline ml-xs">Contactar soporte</a>
+      </p>
+    </div>
+  </main>
+</div>

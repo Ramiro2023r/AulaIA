@@ -1,0 +1,13 @@
+<div class="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col h-full">
+  <div class="px-lg py-md border-b border-outline-variant empty:hidden">
+    <ng-content select="[card-header]"></ng-content>
+  </div>
+  
+  <div class="p-lg flex-1">
+    <ng-content></ng-content>
+  </div>
+  
+  <div class="px-lg py-md bg-surface-container-lowest border-t border-outline-variant empty:hidden">
+    <ng-content select="[card-footer]"></ng-content>
+  </div>
+</div>

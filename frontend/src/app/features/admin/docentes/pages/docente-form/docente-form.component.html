@@ -1,0 +1,85 @@
+<app-page-header 
+  [title]="isEdit() ? 'Editar Docente' : 'Nuevo Docente'">
+</app-page-header>
+
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant mt-6 p-6 max-w-3xl">
+  
+  <div *ngIf="loading() && isEdit()" class="text-center py-8 text-on-surface-variant">
+    Cargando datos del docente...
+  </div>
+
+  <form *ngIf="!(loading() && isEdit())" [formGroup]="form" (ngSubmit)="guardar()" class="space-y-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Nombres -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Nombres *</label>
+        <input type="text" formControlName="nombres" class="input-text w-full" placeholder="Ej: Juan Carlos"
+          [class.border-error]="form.get('nombres')?.invalid && form.get('nombres')?.touched">
+        <div *ngIf="form.get('nombres')?.invalid && form.get('nombres')?.touched" class="text-error text-xs mt-1">
+          Los nombres son obligatorios.
+        </div>
+      </div>
+
+      <!-- Apellidos -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Apellidos *</label>
+        <input type="text" formControlName="apellidos" class="input-text w-full" placeholder="Ej: Pérez Gómez"
+          [class.border-error]="form.get('apellidos')?.invalid && form.get('apellidos')?.touched">
+        <div *ngIf="form.get('apellidos')?.invalid && form.get('apellidos')?.touched" class="text-error text-xs mt-1">
+          Los apellidos son obligatorios.
+        </div>
+      </div>
+
+      <!-- Sección de Credenciales (Sólo visible/habilitada al crear) -->
+      <ng-container *ngIf="!isEdit()">
+        <div class="col-span-full border-t border-outline-variant pt-4 mt-2">
+          <h3 class="text-sm font-semibold text-on-surface mb-4">Credenciales de Acceso</h3>
+        </div>
+
+        <!-- Username -->
+        <div>
+          <label class="block text-sm font-medium text-on-surface-variant mb-1">Usuario (Username) *</label>
+          <input type="text" formControlName="username" class="input-text w-full" placeholder="Ej: jperez"
+            [class.border-error]="form.get('username')?.invalid && form.get('username')?.touched">
+          <div *ngIf="form.get('username')?.invalid && form.get('username')?.touched" class="text-error text-xs mt-1">
+            El usuario es requerido.
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-sm font-medium text-on-surface-variant mb-1">Contraseña *</label>
+          <input type="password" formControlName="password" class="input-text w-full" placeholder="••••••••"
+            [class.border-error]="form.get('password')?.invalid && form.get('password')?.touched">
+          <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="text-error text-xs mt-1">
+            La contraseña es obligatoria.
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="isEdit()">
+        <div class="col-span-full border-t border-outline-variant pt-4 mt-2">
+          <div class="p-3 bg-surface-container-light rounded-lg border border-outline-variant flex items-start gap-3">
+            <span class="material-symbols-rounded text-primary mt-0.5">lock</span>
+            <div class="text-sm text-on-surface-variant">
+              <p class="font-medium text-on-surface mb-1">Gestión de Credenciales</p>
+              <p>Por políticas de seguridad, las credenciales no pueden ser modificadas ni visualizadas desde este formulario.</p>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+    </div>
+
+    <div class="pt-4 flex justify-end gap-3 border-t border-outline-variant mt-6">
+      <button type="button" class="btn btn-secondary" routerLink="/admin/docentes">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading()">
+        {{ loading() ? 'Guardando...' : 'Guardar Docente' }}
+      </button>
+    </div>
+
+  </form>
+
+</div>

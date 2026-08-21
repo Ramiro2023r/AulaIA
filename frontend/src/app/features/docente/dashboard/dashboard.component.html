@@ -1,0 +1,216 @@
+<app-page-header
+  title="Dashboard"
+  subtitle="Bienvenido a tu panel docente en AulaIA."
+>
+</app-page-header>
+
+<div class="px-2 md:px-0 max-w-7xl mx-auto pb-12">
+  @if (isLoading()) {
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 mt-6">
+      <app-skeleton height="140px" rounded="rounded-3xl"></app-skeleton>
+      <app-skeleton height="140px" rounded="rounded-3xl"></app-skeleton>
+      <app-skeleton height="140px" rounded="rounded-3xl"></app-skeleton>
+      <app-skeleton height="140px" rounded="rounded-3xl"></app-skeleton>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2">
+        <app-skeleton height="320px" rounded="rounded-3xl"></app-skeleton>
+      </div>
+      <div>
+        <app-skeleton height="320px" rounded="rounded-3xl"></app-skeleton>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 p-6 rounded-2xl flex items-center gap-4 mt-6 border border-red-100 dark:border-red-800/50">
+      <span class="material-symbols-outlined text-3xl">error</span>
+      <p class="font-medium text-lg">{{ error() }}</p>
+    </div>
+  } @else if (data()) {
+    <!-- KPIs de Asistencia (Hoy) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 mt-6">
+      
+      <!-- Presentes -->
+      <div class="stat-card">
+        <div class="stat-icon-wrapper bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
+          <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">how_to_reg</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Presentes Hoy</span>
+          <span class="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">
+            {{ data()?.estadisticas?.presentes || 0 }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Tardanzas -->
+      <div class="stat-card">
+        <div class="stat-icon-wrapper bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400">
+          <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">schedule</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tardanzas</span>
+          <span class="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">
+            {{ data()?.estadisticas?.tardanzas || 0 }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Ausentes -->
+      <div class="stat-card">
+        <div class="stat-icon-wrapper bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400">
+          <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">person_off</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Faltas</span>
+          <span class="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">
+            {{ data()?.estadisticas?.ausentes || 0 }}
+          </span>
+        </div>
+      </div>
+
+      <!-- % Asistencia -->
+      <div class="stat-card bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800/50">
+        <div class="stat-icon-wrapper bg-indigo-100 dark:bg-indigo-800/50 text-indigo-600 dark:text-indigo-400">
+          <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm font-medium text-indigo-600 dark:text-indigo-300 mb-1">Asistencia Total</span>
+          <span class="text-4xl font-bold text-indigo-700 dark:text-white tracking-tight">
+            {{ data()?.estadisticas?.porcentajeAsistencia || 0 }}%
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      
+      <!-- Hero Card: Clase Actual -->
+      <div class="xl:col-span-2">
+        <div class="hero-card h-full flex flex-col justify-between">
+          <div class="relative z-10 flex flex-col h-full">
+            <div class="flex justify-between items-start mb-6">
+              <div class="flex items-center gap-3 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30">
+                <div class="pulsing-dot">
+                  <span class="ping"></span>
+                  <span class="dot"></span>
+                </div>
+                <span class="text-sm font-semibold tracking-wide uppercase text-white drop-shadow-sm">Estado en Vivo</span>
+              </div>
+              
+              <span class="material-symbols-outlined text-[80px] opacity-20 transform rotate-12 absolute -top-4 -right-4" style="font-variation-settings: 'FILL' 1;">
+                qr_code_scanner
+              </span>
+            </div>
+
+            @if (data()?.claseActual; as clase) {
+              <div class="mt-4 flex-1">
+                <h4 class="text-indigo-100 font-medium text-lg mb-2">Clase Actual</h4>
+                <h2 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight text-white drop-shadow-sm">
+                  {{ clase.curso.nombre }}
+                </h2>
+                <div class="flex items-center gap-6 text-indigo-100 mb-10">
+                  <p class="flex items-center gap-2 text-lg">
+                    <span class="material-symbols-outlined">groups</span> 
+                    Sección {{ clase.seccion.nombre }}
+                  </p>
+                  <p class="flex items-center gap-2 text-lg bg-indigo-900/40 px-3 py-1 rounded-lg">
+                    <span class="material-symbols-outlined text-sm">schedule</span> 
+                    {{ clase.horaInicio }} - {{ clase.horaFin }}
+                  </p>
+                </div>
+              </div>
+            } @else {
+              <div class="mt-4 flex-1">
+                <h4 class="text-indigo-100 font-medium text-lg mb-2">Estado</h4>
+                <h2 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight text-white drop-shadow-sm">
+                  Sin clase activa
+                </h2>
+                <p class="text-indigo-100 text-lg mb-10 max-w-md">
+                  No tienes ninguna sesión abierta o programada para este momento específico.
+                </p>
+              </div>
+            }
+
+            <!-- CTA Button -->
+            <div class="mt-auto">
+              <button 
+                (click)="abrirModoAula()" 
+                class="btn-premium w-full sm:w-auto justify-center"
+              >
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">camera_enhance</span>
+                <span>Iniciar Modo Aula</span>
+              </button>
+              <p class="text-xs text-indigo-200 mt-4 opacity-80 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">info</span>
+                Haz clic para registrar asistencia por reconocimiento facial o QR
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Clases del Día -->
+      <div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 h-full flex flex-col shadow-xl shadow-slate-200/40 dark:shadow-none">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-500">calendar_today</span>
+              Agenda de hoy
+            </h3>
+            <span class="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold tracking-wide">
+              {{ data()?.clasesDelDia?.length || 0 }} SESIONES
+            </span>
+          </div>
+
+          <div class="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4">
+            @for (clase of data()?.clasesDelDia; track clase.horarioId) {
+              <div class="glass-list-item flex justify-between items-center group cursor-pointer relative overflow-hidden">
+                <!-- Hover effect strip -->
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
+                
+                <div class="pl-2">
+                  <h4 class="text-base font-bold text-slate-800 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ clase.curso.nombre }}</h4>
+                  <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[16px]">groups</span>
+                      Sec. {{ clase.seccion.nombre }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[16px]">schedule</span>
+                      {{ clase.horaInicio | slice:0:5 }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div>
+                  @if (clase.estado === 'ABIERTA') {
+                    <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-[11px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">
+                      ACTIVA
+                    </span>
+                  } @else if (clase.estado === 'CERRADA') {
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest border border-slate-200 dark:border-slate-700">
+                      FIN
+                    </span>
+                  } @else {
+                    <span class="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[11px] font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
+                      PROG
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+            
+            @if (!data()?.clasesDelDia?.length) {
+              <div class="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-8 text-center bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                <span class="material-symbols-outlined text-6xl mb-4 text-slate-300 dark:text-slate-600">event_available</span>
+                <p class="text-base font-medium text-slate-600 dark:text-slate-300 mb-1">Día libre</p>
+                <p class="text-sm">No tienes clases programadas para hoy.</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

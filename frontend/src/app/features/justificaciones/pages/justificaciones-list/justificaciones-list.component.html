@@ -1,0 +1,98 @@
+<app-page-header title="Justificaciones de Asistencia">
+</app-page-header>
+
+<!-- Alertas -->
+<div *ngIf="successMsg()" class="mt-4 px-4 py-3 rounded-lg bg-secondary-container text-on-secondary-container text-sm">
+  {{ successMsg() }}
+</div>
+<div *ngIf="errorMsg()" class="mt-4 px-4 py-3 rounded-lg bg-error-container text-on-error-container text-sm">
+  {{ errorMsg() }}
+</div>
+
+<!-- Tabla -->
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant mt-6 p-4">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[800px]">
+      <thead>
+        <tr class="border-b border-outline-variant text-on-surface-variant text-sm">
+          <th class="p-3 font-medium">Estudiante</th>
+          <th class="p-3 font-medium">Curso</th>
+          <th class="p-3 font-medium">Fecha Clase</th>
+          <th class="p-3 font-medium">Motivo</th>
+          <th class="p-3 font-medium">Asistencia</th>
+          <th class="p-3 font-medium">Estado Justif.</th>
+          <th class="p-3 font-medium text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Loading -->
+        <tr *ngIf="loading()">
+          <td colspan="7" class="p-6 text-center text-on-surface-variant">Cargando justificaciones...</td>
+        </tr>
+
+        <!-- Filas de datos -->
+        <tr *ngFor="let j of justificaciones()"
+            class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+          <td class="p-3 text-on-surface font-medium">{{ j.estudianteNombre }} {{ j.estudianteApellidos }}</td>
+          <td class="p-3 text-sm text-on-surface">{{ j.cursoNombre }}</td>
+          <td class="p-3 text-sm text-on-surface-variant whitespace-nowrap">{{ j.fechaSesion | date:'dd/MM/yyyy' }}</td>
+          <td class="p-3 text-sm text-on-surface max-w-[200px] truncate" [title]="j.motivo">{{ j.motivo }}</td>
+          <td class="p-3">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+              [ngClass]="{
+                'bg-error-container text-on-error-container': j.estadoAsistencia === 'AUSENTE',
+                'bg-tertiary-container text-on-tertiary-container': j.estadoAsistencia === 'TARDANZA',
+                'bg-secondary-container text-on-secondary-container': j.estadoAsistencia === 'PRESENTE',
+                'bg-primary-fixed text-primary': j.estadoAsistencia === 'JUSTIFICADO'
+              }">
+              {{ j.estadoAsistencia }}
+            </span>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+              [ngClass]="{
+                'bg-surface-container text-on-surface-variant': j.estado === 'PENDIENTE',
+                'bg-secondary-container text-on-secondary-container': j.estado === 'APROBADA',
+                'bg-error-container text-on-error-container': j.estado === 'RECHAZADA'
+              }">
+              {{ j.estado }}
+            </span>
+          </td>
+          <td class="p-3 text-right">
+            <div class="flex items-center justify-end gap-2" *ngIf="j.estado === 'PENDIENTE'">
+              <button
+                class="btn btn-text text-secondary w-8 h-8 p-0 rounded-full hover:bg-secondary/10"
+                (click)="confirmarAccion(j, 'APROBADA')"
+                title="Aprobar">
+                <span class="material-symbols-rounded text-base">check_circle</span>
+              </button>
+              <button
+                class="btn btn-text text-error w-8 h-8 p-0 rounded-full hover:bg-error/10"
+                (click)="confirmarAccion(j, 'RECHAZADA')"
+                title="Rechazar">
+                <span class="material-symbols-rounded text-base">cancel</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Sin datos -->
+        <tr *ngIf="!loading() && justificaciones().length === 0">
+          <td colspan="7" class="p-6 text-center text-on-surface-variant">No hay justificaciones registradas.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal de confirmación -->
+<app-confirm-dialog
+  *ngIf="showDialog()"
+  [title]="dialogTitle()"
+  [message]="dialogMessage()"
+  [confirmText]="dialogIsDanger() ? 'Rechazar' : 'Aprobar'"
+  [cancelText]="'Cancelar'"
+  [isDanger]="dialogIsDanger()"
+  (confirmed)="onDialogConfirmed()"
+  (cancelled)="onDialogCancelled()">
+</app-confirm-dialog>

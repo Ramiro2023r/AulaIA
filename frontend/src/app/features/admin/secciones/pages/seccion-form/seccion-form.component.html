@@ -1,0 +1,59 @@
+<app-page-header 
+  [title]="isEdit() ? 'Editar Sección' : 'Nueva Sección'">
+</app-page-header>
+
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant mt-6 p-6 max-w-3xl">
+  
+  <div *ngIf="loading() && isEdit()" class="text-center py-8 text-on-surface-variant">
+    Cargando datos de la sección...
+  </div>
+
+  <form *ngIf="!(loading() && isEdit())" [formGroup]="form" (ngSubmit)="guardar()" class="space-y-6">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Grado -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Grado *</label>
+        <select formControlName="gradoId" class="input-text w-full"
+          [class.border-error]="form.get('gradoId')?.invalid && form.get('gradoId')?.touched">
+          <option [ngValue]="null">Seleccione un grado...</option>
+          <option *ngFor="let grado of grados()" [ngValue]="grado.id">{{ grado.nombre }} ({{ grado.nivel }})</option>
+        </select>
+        <div *ngIf="form.get('gradoId')?.invalid && form.get('gradoId')?.touched" class="text-error text-xs mt-1">
+          El grado es requerido.
+        </div>
+      </div>
+
+      <!-- Nombre -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Nombre de la Sección *</label>
+        <input type="text" formControlName="nombre" class="input-text w-full" placeholder="Ej: A, B, Única"
+          [class.border-error]="form.get('nombre')?.invalid && form.get('nombre')?.touched">
+        <div *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched" class="text-error text-xs mt-1">
+          El nombre es requerido y máximo 50 caracteres.
+        </div>
+      </div>
+
+      <!-- Periodo Académico -->
+      <div>
+        <label class="block text-sm font-medium text-on-surface-variant mb-1">Periodo Académico *</label>
+        <input type="text" formControlName="periodoAcademico" class="input-text w-full" placeholder="Ej: 2026"
+          [class.border-error]="form.get('periodoAcademico')?.invalid && form.get('periodoAcademico')?.touched">
+        <div *ngIf="form.get('periodoAcademico')?.invalid && form.get('periodoAcademico')?.touched" class="text-error text-xs mt-1">
+          El periodo académico es requerido.
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="pt-4 flex justify-end gap-3 border-t border-outline-variant mt-6">
+      <button type="button" class="btn btn-secondary" routerLink="/admin/secciones">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading()">
+        {{ loading() ? 'Guardando...' : 'Guardar Sección' }}
+      </button>
+    </div>
+
+  </form>
+
+</div>
