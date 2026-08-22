@@ -23,9 +23,10 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# curl se usa únicamente para el healthcheck definido en Docker Compose.
+# curl se usa para el healthcheck y tzdata permite que TZ=America/Lima
+# resuelva la zona horaria dentro de la imagen de runtime.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar JAR del build
