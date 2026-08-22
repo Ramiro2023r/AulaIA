@@ -20,17 +20,21 @@
   <!-- Main Scanner Area -->
   <main class="flex-1 flex flex-col items-center justify-center px-md pb-xxl relative z-10">
     
-    <!-- Contextual Information -->
-    <div class="flex flex-wrap items-center justify-center gap-sm mb-lg">
-      <div class="bg-surface-container text-on-surface px-md py-sm rounded-full font-label-md flex items-center gap-xs">
-        <span class="material-symbols-outlined text-[18px]">menu_book</span>
-        COMPUTACIÓN
+    <!-- Contextual Information: corresponde a la sesión seleccionada en el dashboard. -->
+    @if (sesion(); as clase) {
+      <div class="flex flex-wrap items-center justify-center gap-sm mb-lg">
+        <div class="bg-surface-container text-on-surface px-md py-sm rounded-full font-label-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-[18px]">menu_book</span>
+          {{ clase.curso.nombre }}
+        </div>
+        <div class="bg-surface-container text-on-surface px-md py-sm rounded-full font-label-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-[18px]">groups</span>
+          Sección {{ clase.seccion.nombre }}
+        </div>
       </div>
-      <div class="bg-surface-container text-on-surface px-md py-sm rounded-full font-label-md flex items-center gap-xs">
-        <span class="material-symbols-outlined text-[18px]">groups</span>
-        6.º Primaria — A
-      </div>
-    </div>
+    } @else {
+      <p class="mb-lg text-on-surface-variant font-label-md">Cargando información de la clase...</p>
+    }
 
     <!-- Huge Title -->
     <h1 class="font-display text-display text-on-surface mb-xl text-center max-w-2xl">
@@ -150,7 +154,7 @@
         </div>
 
         <!-- Greetings & Primary Text -->
-        <h1 class="font-headline-lg text-headline-lg text-primary mb-xs tracking-tight">¡Hola, {{ lastResult()?.estudianteNombre }}!</h1>
+        <h1 class="font-headline-lg text-headline-lg text-primary mb-xs tracking-tight">¡Hola, {{ lastResult()?.nombre }}!</h1>
         <p class="font-body-lg text-body-lg text-on-surface-variant mb-xl">
           Asistencia registrada correctamente
         </p>
@@ -162,7 +166,7 @@
             <div class="flex items-center gap-sm text-on-surface">
               <span class="material-symbols-outlined text-outline">schedule</span>
               <span class="font-body-md text-body-md text-on-surface-variant">Hora de registro:</span>
-              <strong class="font-label-md text-label-md text-on-surface">{{ lastResult()?.fechaHora | date:'shortTime' }}</strong>
+              <strong class="font-label-md text-label-md text-on-surface">{{ lastResult()?.hora | date:'shortTime' }}</strong>
             </div>
             
             <!-- Status Badge -->

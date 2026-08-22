@@ -2,7 +2,9 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } f
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
-import { AsistenciaService, MetodoRegistro, AsistenciaResponse } from '../../../core/services/asistencia.service';
+import { AsistenciaService, MetodoRegistro, RegistrarAsistenciaResponse } from '../../../core/services/asistencia.service';
+import { SesionService } from '../../../core/services/sesion.service';
+import { SesionClaseResponse } from '../../../core/services/dashboard.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { VoiceService } from '../../../core/services/voice.service';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -24,6 +26,7 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private asistenciaService = inject(AsistenciaService);
+  private sesionService = inject(SesionService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   public voiceService = inject(VoiceService);
@@ -34,8 +37,9 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
   // Estados de cámara
   cameraState = signal<CameraState>('pending');
   scanResultState = signal<ScanResultState>('idle');
-  lastResult = signal<AsistenciaResponse | null>(null);
+  lastResult = signal<RegistrarAsistenciaResponse | null>(null);
   errorMessage = signal<string | null>(null);
+  sesion = signal<SesionClaseResponse | null>(null);
   
   // Modal de registro manual
   showManualModal = signal(false);
@@ -52,8 +56,10 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Obtenemos el sesionId desde los query params de la ruta
     this.route.queryParams.subscribe(params => {
-      if (params['sesionId']) {
-        this.sesionId = Number(params['sesionId']);
+      const sesionId = Number(params['sesionId']);
+      if (Number.isInteger(sesionId) && sesionId > 0) {
+        this.sesionId = sesionId;
+        this.cargarContextoSesion(sesionId);
       } else {
         console.warn('No se recibió un sesionId en la ruta.');
       }
@@ -116,6 +122,17 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
     this.router.navigate(['/docente/dashboard']);
   }
 
+  private cargarContextoSesion(sesionId: number): void {
+    this.sesionService.buscarPorId(sesionId).subscribe({
+      next: (sesion) => this.sesion.set(sesion),
+      error: () => {
+        // La asistencia sigue validándose con el sesionId en el backend.
+        // Simplemente no se muestran datos que no podamos confirmar.
+        this.sesion.set(null);
+      }
+    });
+  }
+
   // --- Procesamiento ---
 
   processCode(codigo: string, metodo: MetodoRegistro): void {
@@ -138,10 +155,11 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
         this.scanResultState.set('success');
         this.lastResult.set(res);
         
+        const nombre = res.nombre?.trim() || 'estudiante';
         if (res.estado === 'PRESENTE') {
-          this.voiceService.speak(`¡Hola ${res.estudianteNombre}! Tu asistencia fue registrada correctamente. ¡Que tengas una excelente clase!`);
+          this.voiceService.speak(`¡Hola ${nombre}! Tu asistencia fue registrada correctamente. ¡Que tengas una excelente clase!`);
         } else if (res.estado === 'TARDANZA') {
-          this.voiceService.speak(`${res.estudianteNombre}, asistencia registrada con tardanza.`);
+          this.voiceService.speak(`${nombre}, asistencia registrada con tardanza.`);
         }
         
         this.resetScanner(4000);

@@ -72,7 +72,7 @@ class SesionClaseServiceTest {
     private final AsistenciaRepository asistenciaRepository = mock(AsistenciaRepository.class);
     private final EstudianteRepository estudianteRepository = mock(EstudianteRepository.class);
     private final AuditService auditService = mock(AuditService.class);
-    private final SesionClaseMapperImpl sesionClaseMapper = new SesionClaseMapperImpl();
+    private final com.aulaia.mapper.SesionClaseMapper sesionClaseMapper = org.mapstruct.factory.Mappers.getMapper(com.aulaia.mapper.SesionClaseMapper.class);
     private final Clock clock = Clock.fixed(HORA_FIJA.toInstant(), ZoneId.of("America/Lima"));
     private final SesionClaseService sesionClaseService = new SesionClaseService(
             horarioRepository, sesionClaseRepository, sesionClaseCreatorTx,

@@ -64,4 +64,41 @@ export class EstudianteService {
   regenerarQr(id: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/regenerar-qr`, {});
   }
+
+  listarApoderadosParaTelegram(estudianteId: number): Observable<ApoderadoTelegramOption[]> {
+    return this.http.get<ApoderadoTelegramOption[]>(`${this.apiUrl}/${estudianteId}/apoderados`);
+  }
+
+  crearApoderado(estudianteId: number, request: ApoderadoEstudianteRequest): Observable<ApoderadoTelegramOption> {
+    return this.http.post<ApoderadoTelegramOption>(`${this.apiUrl}/${estudianteId}/apoderados`, request);
+  }
+
+  generarVinculacionTelegram(estudianteId: number, apoderadoId: number): Observable<TelegramVinculacionLinkResponse> {
+    return this.http.post<TelegramVinculacionLinkResponse>(`${this.apiUrl}/${estudianteId}/telegram/vinculacion`, {
+      apoderadoId
+    });
+  }
+}
+
+export interface TelegramVinculacionLinkResponse {
+  status: string;
+  telegramUrl: string;
+  expiresAt: string;
+}
+
+export interface ApoderadoTelegramOption {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  parentesco: string;
+  principal: boolean;
+  activo: boolean;
+}
+
+export interface ApoderadoEstudianteRequest {
+  nombres: string;
+  apellidos: string;
+  telefono?: string | null;
+  parentesco: 'MADRE' | 'PADRE' | 'TUTOR' | 'OTRO';
+  principal: boolean;
 }

@@ -1,12 +1,16 @@
 package com.aulaia.controller;
 
 import com.aulaia.entity.Estudiante;
+import com.aulaia.entity.Apoderado;
+import com.aulaia.entity.EstudianteApoderado;
 import com.aulaia.entity.Rol;
 import com.aulaia.entity.Seccion;
 import com.aulaia.entity.Usuario;
 import com.aulaia.repository.CursoRepository;
 import com.aulaia.repository.DocenteRepository;
 import com.aulaia.repository.EstudianteRepository;
+import com.aulaia.repository.EstudianteApoderadoRepository;
+import com.aulaia.repository.ApoderadoRepository;
 import com.aulaia.repository.GradoRepository;
 import com.aulaia.repository.HorarioRepository;
 import com.aulaia.repository.AsistenciaRepository;
@@ -91,6 +95,12 @@ class EstudianteControllerTest {
     @MockitoBean
     private AsistenciaRepository asistenciaRepository;
 
+    @MockitoBean
+    private EstudianteApoderadoRepository estudianteApoderadoRepository;
+
+    @MockitoBean
+    private ApoderadoRepository apoderadoRepository;
+
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     private com.aulaia.repository.AuditoriaRepository auditoriaRepository;
 
@@ -142,6 +152,35 @@ class EstudianteControllerTest {
         mockMvc.perform(get("/api/v1/estudiantes"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void crearApoderadoComoAdminLoRegistraYAsociaAlEstudiante() throws Exception {
+        Estudiante estudiante = estudiante(1L, "COD001", seccion(1L, "A"));
+        when(estudianteRepository.findById(1L)).thenReturn(Optional.of(estudiante));
+        when(estudianteApoderadoRepository.findByEstudianteId(1L)).thenReturn(List.of());
+        when(apoderadoRepository.save(any(Apoderado.class))).thenAnswer(invocation -> {
+            Apoderado apoderado = invocation.getArgument(0);
+            apoderado.setId(9L);
+            return apoderado;
+        });
+        when(estudianteApoderadoRepository.save(any(EstudianteApoderado.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        mockMvc.perform(post("/api/v1/estudiantes/1/apoderados")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombres":"María","apellidos":"Pérez","telefono":"999111222","parentesco":"MADRE","principal":true}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(9))
+                .andExpect(jsonPath("$.nombres").value("María"))
+                .andExpect(jsonPath("$.parentesco").value("MADRE"))
+                .andExpect(jsonPath("$.principal").value(true))
+                .andExpect(jsonPath("$.activo").value(true));
+
+        verify(estudianteApoderadoRepository).save(any(EstudianteApoderado.class));
     }
 
     @Test

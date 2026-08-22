@@ -37,7 +37,7 @@ class CursoServiceTest {
     @BeforeEach
     void setUp() {
         cursoRepository = mock(CursoRepository.class);
-        cursoService = new CursoService(cursoRepository, new CursoMapperImpl());
+        cursoService = new CursoService(cursoRepository, org.mapstruct.factory.Mappers.getMapper(com.aulaia.mapper.CursoMapper.class));
     }
 
     private Curso curso(Long id, String nombre, String descripcion) {

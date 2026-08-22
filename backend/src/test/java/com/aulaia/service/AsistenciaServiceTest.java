@@ -20,6 +20,7 @@ import com.aulaia.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Clock;
@@ -60,6 +61,7 @@ class AsistenciaServiceTest {
     private UsuarioRepository usuarioRepository;
     private DocenteRepository docenteRepository;
     private AuditService auditService;
+    private ApplicationEventPublisher eventPublisher;
     private AsistenciaService service;
 
     /**
@@ -78,6 +80,7 @@ class AsistenciaServiceTest {
         usuarioRepository = mock(UsuarioRepository.class);
         docenteRepository = mock(DocenteRepository.class);
         auditService = mock(AuditService.class);
+        eventPublisher = mock(ApplicationEventPublisher.class);
         
         service = new AsistenciaService(
                 asistenciaRepository,
@@ -86,7 +89,8 @@ class AsistenciaServiceTest {
                 usuarioRepository,
                 docenteRepository,
                 auditService,
-                FIXED_CLOCK);
+                FIXED_CLOCK,
+                eventPublisher);
     }
 
     // =========================================================================
@@ -170,6 +174,7 @@ class AsistenciaServiceTest {
         assertThat(resp.estado()).isEqualTo(EstadoAsistencia.PRESENTE);
         assertThat(resp.nombre()).isEqualTo("Juan");
         assertThat(resp.hora()).isNotNull();
+        verify(eventPublisher).publishEvent(any(AsistenciaRegistradaEvent.class));
     }
 
     // =========================================================================

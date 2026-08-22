@@ -28,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -93,6 +94,7 @@ public class AsistenciaService {
     private final DocenteRepository docenteRepository;
     private final AuditService auditService;
     private final Clock clock;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AsistenciaService(AsistenciaRepository asistenciaRepository,
                              SesionClaseRepository sesionClaseRepository,
@@ -100,7 +102,8 @@ public class AsistenciaService {
                              UsuarioRepository usuarioRepository,
                              DocenteRepository docenteRepository,
                              AuditService auditService,
-                             Clock clock) {
+                             Clock clock,
+                             ApplicationEventPublisher eventPublisher) {
         this.asistenciaRepository = asistenciaRepository;
         this.sesionClaseRepository = sesionClaseRepository;
         this.estudianteResolverService = estudianteResolverService;
@@ -108,6 +111,7 @@ public class AsistenciaService {
         this.docenteRepository = docenteRepository;
         this.auditService = auditService;
         this.clock = clock;
+        this.eventPublisher = eventPublisher;
     }
 
     // =========================================================================
@@ -175,6 +179,10 @@ public class AsistenciaService {
         log.info("Asistencia registrada: sesion={}, estudiante={}, estado={}, metodo={}",
                 sesion.getId(), estudiante.getId(), estado, request.metodo());
 
+        // El listener Telegram se ejecutará AFTER_COMMIT; esta publicación no
+        // altera la lógica ni el resultado del registro de asistencia.
+        eventPublisher.publishEvent(crearEventoAsistencia(asistencia));
+
         // Paso 9 — Devolver respuesta
         String mensaje = (estado == EstadoAsistencia.PRESENTE)
                 ? "Asistencia registrada: PRESENTE"
@@ -187,6 +195,32 @@ public class AsistenciaService {
                 estado,
                 mensaje
         );
+    }
+
+    private AsistenciaRegistradaEvent crearEventoAsistencia(Asistencia asistencia) {
+        Horario horario = asistencia.getSesionClase().getHorario();
+        String curso = horario.getCurso() == null ? null : horario.getCurso().getNombre();
+        Seccion seccion = horario.getSeccion();
+        String grado = seccion.getGrado() == null ? null : seccion.getGrado().getNombre();
+        String gradoSeccion = unirNoVacios(grado, seccion.getNombre());
+        String nombreEstudiante = unirNoVacios(
+                asistencia.getEstudiante().getNombres(), asistencia.getEstudiante().getApellidos());
+
+        return new AsistenciaRegistradaEvent(
+                asistencia.getId(),
+                asistencia.getEstudiante().getId(),
+                nombreEstudiante,
+                asistencia.getFechaHora(),
+                asistencia.getEstado(),
+                curso,
+                gradoSeccion);
+    }
+
+    private String unirNoVacios(String primero, String segundo) {
+        String izquierda = primero == null ? "" : primero.trim();
+        String derecha = segundo == null ? "" : segundo.trim();
+        String resultado = (izquierda + " " + derecha).trim();
+        return resultado.isBlank() ? null : resultado;
     }
 
     // =========================================================================

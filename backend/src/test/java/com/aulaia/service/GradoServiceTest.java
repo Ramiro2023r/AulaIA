@@ -35,7 +35,7 @@ class GradoServiceTest {
     @BeforeEach
     void setUp() {
         gradoRepository = mock(GradoRepository.class);
-        gradoService = new GradoService(gradoRepository, new GradoMapperImpl());
+        gradoService = new GradoService(gradoRepository, org.mapstruct.factory.Mappers.getMapper(com.aulaia.mapper.GradoMapper.class));
     }
 
     private Grado grado(Long id, String nombre, String nivel) {

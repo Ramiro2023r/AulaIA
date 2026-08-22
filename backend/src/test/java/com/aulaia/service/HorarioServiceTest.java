@@ -70,7 +70,7 @@ class HorarioServiceTest {
         auditService = mock(AuditService.class);
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
         horarioService = new HorarioService(horarioRepository, cursoRepository, seccionRepository,
-                docenteRepository, usuarioRepository, new HorarioMapperImpl(), validator, auditService);
+                docenteRepository, usuarioRepository, org.mapstruct.factory.Mappers.getMapper(com.aulaia.mapper.HorarioMapper.class), validator, auditService);
     }
 
     @AfterEach

@@ -1,15 +1,17 @@
 import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { PageHeaderComponent } from '../../../../../shared/components/ui/page-header/page-header.component';
-import { EstudianteService, EstudianteResponse } from '../../../../../core/services/estudiante.service';
+import { ApoderadoEstudianteRequest, ApoderadoTelegramOption, EstudianteService, EstudianteResponse } from '../../../../../core/services/estudiante.service';
 import { environment } from '../../../../../../environments/environment';
+import * as QRCode from 'qrcode';
 
 @Component({
   selector: 'app-estudiante-detalle',
   standalone: true,
-  imports: [CommonModule, RouterModule, PageHeaderComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PageHeaderComponent],
   templateUrl: './estudiante-detalle.component.html',
 })
 export class EstudianteDetalleComponent implements OnInit, OnDestroy {
@@ -22,7 +24,7 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
   error = signal(false);
 
   // Tab state
-  activeTab = signal<'datos' | 'qr'>('datos');
+  activeTab = signal<'datos' | 'apoderados' | 'qr'>('datos');
 
   // QR state
   // qrUrl → objectURL para mostrar en <img> (libera memory al destruir)
@@ -31,6 +33,25 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
   qrBase64 = signal<string | null>(null);
   private qrObjectUrl: string | null = null;
   isRegenerating = signal(false);
+
+  // Telegram state
+  telegramStatus = signal<'NO_VINCULADO' | 'PENDIENTE' | 'VINCULADO' | 'ERROR'>('NO_VINCULADO');
+  telegramQrBase64 = signal<string | null>(null);
+  telegramExpiresAt = signal<string | null>(null);
+  isGeneratingTelegramQr = signal(false);
+  telegramError = signal<string | null>(null);
+  apoderadosTelegram = signal<ApoderadoTelegramOption[]>([]);
+  apoderadoSeleccionadoId = signal<number | null>(null);
+  isSavingApoderado = signal(false);
+  apoderadoError = signal<string | null>(null);
+  apoderadoExito = signal<string | null>(null);
+  nuevoApoderado: ApoderadoEstudianteRequest = {
+    nombres: '',
+    apellidos: '',
+    telefono: '',
+    parentesco: 'MADRE',
+    principal: false,
+  };
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -52,12 +73,33 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
         this.estudiante.set(data);
         this.loading.set(false);
         this.cargarQrBlob(id);
+        this.cargarApoderadosTelegram(id);
       },
       error: () => {
         this.error.set(true);
         this.loading.set(false);
       }
     });
+  }
+
+  cargarApoderadosTelegram(estudianteId: number): void {
+    this.estudianteService.listarApoderadosParaTelegram(estudianteId).subscribe({
+      next: (apoderados) => {
+        this.apoderadosTelegram.set(apoderados);
+        this.apoderadoSeleccionadoId.set(apoderados.find(apoderado => apoderado.activo)?.id ?? null);
+      },
+      error: () => {
+        this.apoderadosTelegram.set([]);
+        this.apoderadoSeleccionadoId.set(null);
+        this.telegramError.set('No se pudieron cargar los apoderados del estudiante.');
+      }
+    });
+  }
+
+  seleccionarApoderado(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.apoderadoSeleccionadoId.set(value ? Number(value) : null);
+    this.telegramError.set(null);
   }
 
   cargarQrBlob(id: number, nocache = false): void {
@@ -81,8 +123,49 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
     });
   }
 
-  setTab(tab: 'datos' | 'qr'): void {
+  setTab(tab: 'datos' | 'apoderados' | 'qr'): void {
     this.activeTab.set(tab);
+  }
+
+  guardarApoderado(): void {
+    const est = this.estudiante();
+    if (!est || this.isSavingApoderado()) return;
+
+    const nombres = this.nuevoApoderado.nombres.trim();
+    const apellidos = this.nuevoApoderado.apellidos.trim();
+    if (!nombres || !apellidos) {
+      this.apoderadoError.set('Completa los nombres y apellidos del apoderado.');
+      return;
+    }
+
+    this.isSavingApoderado.set(true);
+    this.apoderadoError.set(null);
+    this.apoderadoExito.set(null);
+    this.estudianteService.crearApoderado(est.id, {
+      nombres,
+      apellidos,
+      telefono: (this.nuevoApoderado.telefono ?? '').trim() || null,
+      parentesco: this.nuevoApoderado.parentesco,
+      principal: this.nuevoApoderado.principal,
+    }).subscribe({
+      next: (apoderado) => {
+        this.apoderadosTelegram.update(actuales => [...actuales, apoderado]);
+        if (this.apoderadoSeleccionadoId() === null && apoderado.activo) {
+          this.apoderadoSeleccionadoId.set(apoderado.id);
+        }
+        this.nuevoApoderado = {
+          nombres: '', apellidos: '', telefono: '', parentesco: 'MADRE', principal: false,
+        };
+        this.apoderadoExito.set('Apoderado registrado y asociado correctamente.');
+        this.isSavingApoderado.set(false);
+      },
+      error: (err) => {
+        this.isSavingApoderado.set(false);
+        this.apoderadoError.set(err.status === 403
+          ? 'Solo un administrador puede registrar apoderados.'
+          : 'No se pudo registrar el apoderado. Inténtalo nuevamente.');
+      }
+    });
   }
 
   descargarQR(): void {
@@ -215,5 +298,61 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  generarQrTelegram(): void {
+    const est = this.estudiante();
+    const apoderadoId = this.apoderadoSeleccionadoId();
+    if (!est) return;
+    if (apoderadoId === null) {
+      this.telegramError.set(this.apoderadosTelegram().length === 0
+        ? 'No hay apoderados registrados para este estudiante.'
+        : 'Selecciona un apoderado activo antes de generar el QR.');
+      return;
+    }
+
+    this.isGeneratingTelegramQr.set(true);
+    this.telegramError.set(null);
+
+    this.estudianteService.generarVinculacionTelegram(est.id, apoderadoId).subscribe({
+      next: async (res) => {
+        try {
+          const qrDataUrl = await QRCode.toDataURL(res.telegramUrl, { width: 260, margin: 2 });
+          this.telegramQrBase64.set(qrDataUrl);
+          this.telegramStatus.set('PENDIENTE');
+          this.telegramExpiresAt.set(res.expiresAt);
+        } catch (err) {
+          console.error('Error generando QR de Telegram', err);
+          this.telegramError.set('Ocurrió un error al generar la imagen del QR.');
+        } finally {
+          this.isGeneratingTelegramQr.set(false);
+        }
+      },
+      error: (err) => {
+        this.isGeneratingTelegramQr.set(false);
+        if (err.status === 409) {
+          this.telegramError.set('La integración con Telegram está deshabilitada.');
+        } else if (err.error?.code === 'TELEGRAM_APODERADO_REQUIRED') {
+          this.telegramError.set('Selecciona un apoderado antes de generar el QR.');
+        } else if (err.error?.code === 'TELEGRAM_APODERADO_INACTIVE') {
+          this.telegramError.set('El apoderado seleccionado está inactivo.');
+        } else if (err.status === 400 && err.error?.message?.includes('configurado')) {
+          this.telegramError.set('El bot de Telegram no está configurado correctamente.');
+        } else {
+          this.telegramError.set('Ocurrió un error de red al intentar generar la vinculación.');
+        }
+      }
+    });
+  }
+
+  descargarQrTelegram(): void {
+    const base64 = this.telegramQrBase64();
+    if (!base64) return;
+    const a = document.createElement('a');
+    a.href = base64;
+    a.download = `Telegram_QR_${this.estudiante()?.codigo ?? 'estudiante'}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 }

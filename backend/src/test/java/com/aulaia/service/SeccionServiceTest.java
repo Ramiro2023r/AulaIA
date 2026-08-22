@@ -42,7 +42,7 @@ class SeccionServiceTest {
     void setUp() {
         seccionRepository = mock(SeccionRepository.class);
         gradoRepository = mock(GradoRepository.class);
-        seccionService = new SeccionService(seccionRepository, gradoRepository, new SeccionMapperImpl());
+        seccionService = new SeccionService(seccionRepository, gradoRepository, org.mapstruct.factory.Mappers.getMapper(com.aulaia.mapper.SeccionMapper.class));
     }
 
     private Grado grado(Long id, String nombre) {

@@ -21,6 +21,11 @@
         Datos Generales
       </button>
       <button class="px-4 py-3 font-medium text-sm transition-colors border-b-2"
+        [ngClass]="activeTab() === 'apoderados' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-on-surface'"
+        (click)="setTab('apoderados')">
+        Apoderados
+      </button>
+      <button class="px-4 py-3 font-medium text-sm transition-colors border-b-2"
         [ngClass]="activeTab() === 'qr' ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-on-surface'"
         (click)="setTab('qr')">
         Código QR
@@ -54,8 +59,82 @@
 
       <div class="mt-8 flex gap-3">
         <a [routerLink]="['/admin/estudiantes', est.id, 'editar']" class="btn btn-secondary">Editar Datos</a>
+        <button type="button" class="btn btn-primary" (click)="setTab('apoderados')">Gestionar apoderados</button>
       </div>
 
+    </div>
+
+    <!-- Tab Content: Apoderados -->
+    <div *ngIf="activeTab() === 'apoderados'" class="max-w-3xl space-y-6">
+      <section class="bg-surface rounded-xl shadow-sm border border-outline-variant p-6">
+        <div class="flex items-start gap-3 mb-5">
+          <span class="material-symbols-rounded text-primary text-2xl">family_restroom</span>
+          <div>
+            <h2 class="text-xl font-medium text-on-surface">Apoderados del estudiante</h2>
+            <p class="text-on-surface-variant mt-1">Registra a la madre, padre, tutor u otro responsable. Después podrás seleccionarlo para vincular Telegram.</p>
+          </div>
+        </div>
+
+        <div *ngIf="apoderadosTelegram().length; else sinApoderados" class="space-y-3">
+          <article *ngFor="let apoderado of apoderadosTelegram()" class="flex items-start justify-between gap-4 rounded-lg border border-outline-variant p-4">
+            <div>
+              <p class="font-medium text-on-surface">{{ apoderado.nombres }} {{ apoderado.apellidos }}</p>
+              <p class="text-sm text-on-surface-variant mt-1">{{ apoderado.parentesco }}</p>
+            </div>
+            <div class="flex flex-wrap justify-end gap-2 text-xs font-medium">
+              <span *ngIf="apoderado.principal" class="rounded-full bg-primary/10 text-primary px-2.5 py-1">Principal</span>
+              <span class="rounded-full px-2.5 py-1" [ngClass]="apoderado.activo ? 'bg-success/15 text-success' : 'bg-error/15 text-error'">
+                {{ apoderado.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+          </article>
+        </div>
+        <ng-template #sinApoderados>
+          <p class="rounded-lg bg-surface-container p-4 text-on-surface-variant">Todavía no hay apoderados registrados para este estudiante.</p>
+        </ng-template>
+      </section>
+
+      <section class="bg-surface rounded-xl shadow-sm border border-outline-variant p-6">
+        <h2 class="text-xl font-medium text-on-surface">Agregar apoderado</h2>
+        <p class="text-on-surface-variant mt-1 mb-5">El apoderado quedará asociado a {{ est.nombres }} {{ est.apellidos }}.</p>
+
+        <div *ngIf="apoderadoError()" class="mb-4 rounded-lg border border-error/20 bg-error/10 p-3 text-sm text-error">{{ apoderadoError() }}</div>
+        <div *ngIf="apoderadoExito()" class="mb-4 rounded-lg border border-success/20 bg-success/10 p-3 text-sm text-success">{{ apoderadoExito() }}</div>
+
+        <form class="grid grid-cols-1 md:grid-cols-2 gap-4" (ngSubmit)="guardarApoderado()">
+          <label class="block">
+            <span class="block text-sm font-medium text-on-surface mb-1">Nombres *</span>
+            <input name="nombresApoderado" [(ngModel)]="nuevoApoderado.nombres" maxlength="120" required class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-on-surface" />
+          </label>
+          <label class="block">
+            <span class="block text-sm font-medium text-on-surface mb-1">Apellidos *</span>
+            <input name="apellidosApoderado" [(ngModel)]="nuevoApoderado.apellidos" maxlength="120" required class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-on-surface" />
+          </label>
+          <label class="block">
+            <span class="block text-sm font-medium text-on-surface mb-1">Parentesco *</span>
+            <select name="parentescoApoderado" [(ngModel)]="nuevoApoderado.parentesco" class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-on-surface">
+              <option value="MADRE">Madre</option>
+              <option value="PADRE">Padre</option>
+              <option value="TUTOR">Tutor(a)</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="block text-sm font-medium text-on-surface mb-1">Teléfono <span class="font-normal text-on-surface-variant">(opcional)</span></span>
+            <input name="telefonoApoderado" [(ngModel)]="nuevoApoderado.telefono" maxlength="30" type="tel" class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-on-surface" />
+          </label>
+          <label class="md:col-span-2 flex items-center gap-2 text-sm text-on-surface cursor-pointer">
+            <input name="principalApoderado" [(ngModel)]="nuevoApoderado.principal" type="checkbox" class="h-4 w-4 accent-primary" />
+            Marcar como apoderado principal
+          </label>
+          <div class="md:col-span-2 flex justify-end">
+            <button type="submit" class="btn btn-primary flex items-center gap-2" [disabled]="isSavingApoderado()">
+              <span class="material-symbols-rounded text-[1.25rem]">person_add</span>
+              {{ isSavingApoderado() ? 'Guardando...' : 'Registrar apoderado' }}
+            </button>
+          </div>
+        </form>
+      </section>
     </div>
 
     <!-- Tab Content: QR -->
@@ -84,6 +163,68 @@
             <span class="material-symbols-rounded text-[1.25rem]">{{ isRegenerating() ? 'hourglass_empty' : 'refresh' }}</span>
             {{ isRegenerating() ? 'Regenerando...' : 'Regenerar' }}
           </button>
+        </div>
+      </div>
+
+      <!-- Separator -->
+      <hr class="border-t border-outline-variant my-8">
+
+      <!-- Seccion QR Telegram -->
+      <div class="text-center py-6">
+        <h3 class="text-lg font-medium text-on-surface mb-4">Vinculación con Telegram</h3>
+        <p class="text-on-surface-variant mb-6 max-w-md mx-auto">
+          Este código permite al apoderado vincular su cuenta de Telegram para recibir notificaciones sobre la asistencia.
+        </p>
+        
+        <div *ngIf="telegramError()" class="mb-4 p-4 bg-error/10 text-error rounded-xl border border-error/20 inline-block max-w-md">
+          {{ telegramError() }}
+        </div>
+
+        <div *ngIf="telegramStatus() === 'NO_VINCULADO'" class="mb-6">
+          <p class="text-on-surface-variant mb-4 font-medium">Estado: <span class="font-bold text-on-surface">No vinculado</span></p>
+          <ng-container *ngIf="apoderadosTelegram().length > 0; else sinApoderadosTelegram">
+            <label for="apoderado-telegram" class="block text-left max-w-md mx-auto text-sm font-medium text-on-surface mb-2">Apoderado</label>
+            <select id="apoderado-telegram"
+                    class="w-full max-w-md px-3 py-2 border border-outline-variant rounded-lg bg-surface text-on-surface mb-4"
+                    [value]="apoderadoSeleccionadoId() ?? ''"
+                    (change)="seleccionarApoderado($event)">
+              <option value="">Selecciona un apoderado</option>
+              <option *ngFor="let apoderado of apoderadosTelegram()" [value]="apoderado.id" [disabled]="!apoderado.activo">
+                {{ apoderado.nombres }} {{ apoderado.apellidos }} - {{ apoderado.parentesco }}{{ apoderado.principal ? ' (Principal)' : '' }}{{ !apoderado.activo ? ' (Inactivo)' : '' }}
+              </option>
+            </select>
+            <button class="btn btn-primary flex mx-auto items-center gap-2" (click)="generarQrTelegram()"
+                    [disabled]="isGeneratingTelegramQr() || apoderadoSeleccionadoId() === null">
+              <span class="material-symbols-rounded text-[1.25rem]">qr_code_2</span>
+              {{ isGeneratingTelegramQr() ? 'Generando...' : 'Generar QR de Vinculación' }}
+            </button>
+          </ng-container>
+          <ng-template #sinApoderadosTelegram>
+            <p class="text-on-surface-variant">No hay apoderados registrados para este estudiante.</p>
+          </ng-template>
+        </div>
+
+        <div *ngIf="telegramStatus() === 'PENDIENTE' && telegramQrBase64()">
+          <p class="text-primary mb-4 font-medium">Estado: <span class="font-bold text-primary">Pendiente</span></p>
+          
+          <div class="inline-block p-4 bg-white border border-outline-variant rounded-xl mb-4 shadow-sm">
+            <img [src]="telegramQrBase64()" alt="QR Telegram" class="w-64 h-64 object-contain">
+          </div>
+          
+          <p class="text-sm text-on-surface-variant mb-6" *ngIf="telegramExpiresAt()">
+            Expira: {{ telegramExpiresAt() | date:'medium' }}
+          </p>
+
+          <div class="flex justify-center gap-4">
+            <button class="btn btn-secondary flex items-center gap-2" (click)="descargarQrTelegram()">
+              <span class="material-symbols-rounded text-[1.25rem]">download</span>
+              Descargar
+            </button>
+            <button class="btn btn-secondary flex items-center gap-2" (click)="generarQrTelegram()" [disabled]="isGeneratingTelegramQr() || apoderadoSeleccionadoId() === null">
+              <span class="material-symbols-rounded text-[1.25rem]">{{ isGeneratingTelegramQr() ? 'hourglass_empty' : 'refresh' }}</span>
+              {{ isGeneratingTelegramQr() ? 'Regenerando...' : 'Regenerar QR' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -11,6 +11,15 @@ export interface RegistrarAsistenciaRequest {
   sesionId?: number; // Optional until we have session management
 }
 
+/** Respuesta del registro inmediato de asistencia en Modo Aula. */
+export interface RegistrarAsistenciaResponse {
+  success: boolean;
+  nombre: string;
+  hora: string;
+  estado: 'PRESENTE' | 'TARDANZA';
+  mensaje: string;
+}
+
 export interface AsistenciaResponse {
   id: number;
   sesionId: number;
@@ -45,10 +54,8 @@ export interface AsistenciaFiltros {
 export class AsistenciaService {
   private http = inject(HttpClient);
 
-  // Nota: Este endpoint de registrar devuelve RegistrarAsistenciaResponse, 
-  // pero mantengo el tipado any o uno simplificado por compatibilidad temporal si es necesario
-  registrar(data: RegistrarAsistenciaRequest): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/asistencias/registrar`, data);
+  registrar(data: RegistrarAsistenciaRequest): Observable<RegistrarAsistenciaResponse> {
+    return this.http.post<RegistrarAsistenciaResponse>(`${environment.apiUrl}/asistencias/registrar`, data);
   }
 
   listar(filtros?: AsistenciaFiltros): Observable<PageResponse<AsistenciaResponse>> {

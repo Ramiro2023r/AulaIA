@@ -18,4 +18,8 @@ export class SesionService {
   cerrarSesion(id: number): Observable<SesionClaseResponse> {
     return this.http.post<SesionClaseResponse>(`${this.apiUrl}/${id}/cerrar`, {});
   }
+
+  buscarPorId(id: number): Observable<SesionClaseResponse> {
+    return this.http.get<SesionClaseResponse>(`${this.apiUrl}/${id}`);
+  }
 }

@@ -55,7 +55,7 @@ class EstudianteServiceTest {
         estudianteService = new EstudianteService(
                 estudianteRepository,
                 seccionRepository,
-                new EstudianteMapperImpl(),
+                org.mapstruct.factory.Mappers.getMapper(com.aulaia.mapper.EstudianteMapper.class),
                 auditService
         );
     }

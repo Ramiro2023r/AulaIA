@@ -46,7 +46,7 @@ class DocenteServiceTest {
         docenteRepository = mock(DocenteRepository.class);
         usuarioRepository = mock(UsuarioRepository.class);
         passwordEncoder = new BCryptPasswordEncoder();
-        docenteService = new DocenteService(docenteRepository, usuarioRepository, new DocenteMapperImpl(), passwordEncoder);
+        docenteService = new DocenteService(docenteRepository, usuarioRepository, org.mapstruct.factory.Mappers.getMapper(com.aulaia.mapper.DocenteMapper.class), passwordEncoder);
     }
 
     private Usuario usuario(Long id, String username, boolean activo) {

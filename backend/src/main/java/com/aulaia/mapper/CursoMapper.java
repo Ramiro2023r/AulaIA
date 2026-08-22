@@ -15,7 +15,7 @@ import org.mapstruct.Mapper;
  *
  * <p>{@code toResponse} mapea los campos de API sin información interna.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface CursoMapper {
 
     Curso toEntity(CursoRequest request);

@@ -73,13 +73,8 @@ class AnalysisService:
             )
             return chat_completion.choices[0].message.content
         except Exception as e:
-            try:
-                # Try to fetch available models to help debug
-                models_info = client.models.list()
-                available = [m.id for m in models_info.data]
-                return f"Error con Groq (Modelo no encontrado). Modelos disponibles en tu cuenta: {', '.join(available)}"
-            except Exception:
-                return f"Hubo un error al comunicarse con Groq: {str(e)}"
+            return f"Hubo un error al comunicarse con Groq: {str(e)}"
+
     def _to_dataframe(self, estudiantes) -> pd.DataFrame:
         data = []
         for e in estudiantes:
