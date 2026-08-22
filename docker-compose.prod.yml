@@ -1,0 +1,267 @@
+# ============================================
+# AulaIA — Docker Compose PRODUCCIÓN
+# Con Traefik (SSL automático Let's Encrypt) + Monitoreo
+# ============================================
+
+services:
+  # ─── Traefik Reverse Proxy + SSL ────────────────────────────────────────
+  traefik:
+    image: traefik:v3.0
+    container_name: aulaia-traefik
+    command:
+      # API Dashboard (solo red interna)
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Redirección HTTP -> HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Proveedor Docker
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      # Let's Encrypt (ACME)
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@aulaia.local}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      # Logs
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+      - traefik_logs:/var/log/traefik
+    networks:
+      - aulaia-network
+    labels:
+      # Dashboard Traefik (opcional, solo si expones puerto 8080)
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.${DOMAIN:-aulaia.local}`)"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
+
+  # ─── PostgreSQL 17 ──────────────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    container_name: aulaia-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - aulaia_postgres_data:/var/lib/postgresql/data
+      - ./backup:/backup  # Para scripts de backup
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aulaia-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ─── FastAPI (Servicio IA) ──────────────────────────────────────────────
+  fastapi:
+    build:
+      context: ./data-science
+      dockerfile: Dockerfile
+    container_name: aulaia-fastapi
+    environment:
+      - ENVIRONMENT=production
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aulaia-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`api.${DOMAIN:-aulaia.local}`) && PathPrefix(`/api/v1/analisis`)"
+      - "traefik.http.routers.fastapi.entrypoints=websecure"
+      - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
+      - "traefik.http.services.fastapi.loadbalancer.server.port=8000"
+
+  # ─── Spring Boot Backend ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aulaia-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+      IA_SERVICE_URL: http://fastapi:8000
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      PORT: 8080
+      AULAIA_BOOTSTRAP_ADMIN_ENABLED: ${AULAIA_BOOTSTRAP_ADMIN_ENABLED:-false}
+      AULAIA_BOOTSTRAP_ADMIN_USERNAME: ${AULAIA_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      AULAIA_BOOTSTRAP_ADMIN_PASSWORD: ${AULAIA_BOOTSTRAP_ADMIN_PASSWORD:-}
+      # Actuator / Prometheus
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: when_authorized
+    networks:
+      - aulaia-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.${DOMAIN:-aulaia.local}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+      # Prometheus scraping
+      - "traefik.http.routers.backend-prometheus.rule=Host(`api.${DOMAIN:-aulaia.local}`) && Path(`/actuator/prometheus`)"
+      - "traefik.http.routers.backend-prometheus.entrypoints=websecure"
+      - "traefik.http.routers.backend-prometheus.tls.certresolver=letsencrypt"
+
+  # ─── Frontend Angular (Nginx) ───────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aulaia-frontend
+    networks:
+      - aulaia-network
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN:-aulaia.local}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
+  # ─── Prometheus (Métricas) ──────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.54
+    container_name: aulaia-prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - aulaia-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ─── Grafana (Dashboards) ───────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4
+    container_name: aulaia-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SERVER_ROOT_URL=https://grafana.${DOMAIN:-aulaia.local}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - aulaia-network
+    depends_on:
+      - prometheus
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN:-aulaia.local}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  # ─── Loki (Logs centralizados) ──────────────────────────────────────────
+  loki:
+    image: grafana/loki:2.9
+    container_name: aulaia-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    networks:
+      - aulaia-network
+
+  # ─── Promtail (Shipper de logs) ─────────────────────────────────────────
+  promtail:
+    image: grafana/promtail:2.9
+    container_name: aulaia-promtail
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/promtail-config.yaml:/etc/promtail/config.yml:ro
+    networks:
+      - aulaia-network
+    depends_on:
+      - loki
+
+  # ─── Backup PostgreSQL (Cron) ───────────────────────────────────────────
+  backup:
+    image: postgres:17-alpine
+    container_name: aulaia-backup
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_SCHEDULE: "0 2 * * *"  # 2 AM daily
+      BACKUP_RETENTION_DAYS: 30
+    volumes:
+      - aulaia_postgres_data:/var/lib/postgresql/data:ro
+      - ./backup:/backup
+    networks:
+      - aulaia-network
+    depends_on:
+      - postgres
+    entrypoint: >
+      /bin/sh -c "
+        apk add --no-cache cron && 
+        echo '0 2 * * * pg_dump -h postgres -U ${POSTGRES_USER} ${POSTGRES_DB} | gzip > /backup/aulaia_$(date +\%Y\%m\%d).sql.gz' > /etc/crontabs/root &&
+        echo '0 3 * * * find /backup -name \"aulaia_*.sql.gz\" -mtime +30 -delete' >> /etc/crontabs/root &&
+        crond -f -l 2
+      "
+
+volumes:
+  aulaia_postgres_data:
+  traefik_letsencrypt:
+  traefik_logs:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+networks:
+  aulaia-network:
+    driver: bridge

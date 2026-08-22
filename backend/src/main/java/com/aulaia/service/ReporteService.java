@@ -51,7 +51,9 @@ public class ReporteService {
         return asistencias.stream().map(a -> {
             String justEstado = justificacionEstadoMap.get(a.getId());
             return ReporteAsistenciaDto.builder()
+                    .asistenciaId(a.getId())
                     .fecha(a.getSesionClase().getFecha())
+                    .estudianteId(a.getEstudiante().getId())
                     .estudianteNombreCompleto(a.getEstudiante().getNombres() + " " + a.getEstudiante().getApellidos())
                     .cursoNombre(a.getSesionClase().getHorario().getCurso().getNombre())
                     .seccionNombre(a.getSesionClase().getHorario().getSeccion().getNombre())
@@ -88,6 +90,10 @@ public class ReporteService {
 
             if (filtros.getEstudianteId() != null) {
                 predicates.add(cb.equal(estudianteJoin.get("id"), filtros.getEstudianteId()));
+            }
+
+            if (filtros.getDocenteId() != null) {
+                predicates.add(cb.equal(horarioJoin.join("docente").get("id"), filtros.getDocenteId()));
             }
 
             if (filtros.getEstadoAsistencia() != null && !filtros.getEstadoAsistencia().isBlank()) {

@@ -5,6 +5,10 @@ import java.util.List;
 
 public record DashboardDocenteResponse(
         SesionClaseResponse claseActual,
+        Integer claseActualAsistentes,
+        Integer claseActualTotalEstudiantes,
         List<SesionClaseResponse> clasesDelDia,
-        EstadisticasAsistencia estadisticas
+        EstadisticasAsistencia estadisticas,
+        List<EstudianteRiesgoDto> estudiantesRiesgo,
+        List<AsistenciaRecienteDto> ultimosRegistros
 ) {}

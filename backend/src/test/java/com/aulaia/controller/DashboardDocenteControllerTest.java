@@ -82,7 +82,7 @@ class DashboardDocenteControllerTest {
                 new SesionClaseResponse.DocenteResumen(1L, "Juan", "Perez")
         );
 
-        DashboardDocenteResponse response = new DashboardDocenteResponse(clase, List.of(clase), stats);
+        DashboardDocenteResponse response = new DashboardDocenteResponse(clase, 12, 13, List.of(clase), stats, List.of(), List.of());
 
         when(dashboardDocenteService.obtenerResumen()).thenReturn(response);
 

@@ -20,13 +20,56 @@
   <!-- Actions -->
   <div class="flex items-center gap-sm">
     <!-- Search (desktop) -->
-    <div class="relative hidden md:block w-64">
+    <div class="relative hidden md:block w-64" clickOutside (clickOutside)="closeSearch()">
       <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
       <input
         type="text"
-        placeholder="Buscar..."
+        [formControl]="searchControl"
+        placeholder="Buscar estudiante o docente..."
         class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-[44px]"
       />
+      
+      <!-- Loader in input -->
+      <div *ngIf="isSearching()" class="absolute right-3 top-1/2 -translate-y-1/2">
+        <span class="material-symbols-outlined text-outline text-[20px] animate-spin">progress_activity</span>
+      </div>
+
+      <!-- Search Results Dropdown -->
+      <div *ngIf="showSearchResults() && searchControl.value && searchControl.value!.length >= 2" 
+           class="absolute top-full left-0 mt-2 w-[400px] bg-surface border border-outline-variant rounded-xl shadow-lg overflow-hidden z-50 animate-fade-in">
+        
+        <div *ngIf="!isSearching() && searchResults().length === 0" class="p-4 text-center text-on-surface-variant text-sm">
+          No se encontraron resultados para "{{ searchControl.value }}"
+        </div>
+
+        <ul *ngIf="searchResults().length > 0" class="max-h-[60vh] overflow-y-auto">
+          <li *ngFor="let res of searchResults()" 
+              (click)="onResultClick(res.route)"
+              class="px-4 py-3 hover:bg-surface-container-low cursor-pointer border-b border-outline-variant last:border-0 flex items-center gap-3 transition-colors">
+            
+            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]">{{ res.icon }}</span>
+            </div>
+            
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-on-surface truncate">{{ res.title }}</div>
+              <div class="text-xs text-on-surface-variant flex items-center gap-2 mt-0.5">
+                <span class="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider"
+                      [ngClass]="res.type === 'ESTUDIANTE' ? 'bg-secondary/10 text-secondary' : 'bg-tertiary/10 text-tertiary'">
+                  {{ res.type }}
+                </span>
+                <span class="truncate">{{ res.subtitle }}</span>
+              </div>
+            </div>
+            
+            <span class="material-symbols-outlined text-outline-variant text-[18px]">chevron_right</span>
+          </li>
+        </ul>
+        
+        <div *ngIf="searchResults().length > 0" class="bg-surface-container-light p-2 text-center border-t border-outline-variant">
+          <span class="text-xs text-on-surface-variant">Resultados rápidos</span>
+        </div>
+      </div>
     </div>
 
     <!-- Notifications -->
@@ -45,12 +88,33 @@
       <span class="material-symbols-outlined">help</span>
     </button>
 
-    <!-- Profile -->
-    <button
-      class="text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
-      aria-label="Perfil"
-    >
-      <span class="material-symbols-outlined">account_circle</span>
-    </button>
+<!-- Profile Dropdown -->
+      <div class="relative" clickOutside (clickOutside)="showProfileMenu.set(false)">
+      <button
+        class="text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+        aria-label="Perfil"
+        (click)="toggleProfileMenu()"
+      >
+        <span class="material-symbols-outlined">account_circle</span>
+      </button>
+
+      @if (showProfileMenu()) {
+        <div class="fixed right-4 top-20 z-50 w-56 bg-surface rounded-xl shadow-lg border border-outline-variant py-2 animate-fade-in">
+          <div class="px-4 py-3 border-b border-outline-variant">
+            <p class="font-medium text-on-surface">{{ userName }}</p>
+            <p class="text-sm text-on-surface-variant">{{ userRole }}</p>
+          </div>
+          <a [routerLink]="userRole === 'ADMIN' ? '/admin/ajustes' : '/docente/configuracion'" class="flex items-center gap-3 px-4 py-2 text-on-surface hover:bg-surface-container-low no-underline" (click)="showProfileMenu.set(false)">
+            <span class="material-symbols-outlined">settings</span>
+            <span>Configuración</span>
+          </a>
+          <div class="border-t border-outline-variant"></div>
+          <button class="w-full flex items-center gap-3 px-4 py-2 text-error hover:bg-error/10" (click)="logout()">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Cerrar sesión</span>
+          </button>
+        </div>
+      }
+    </div>
   </div>
 </header>

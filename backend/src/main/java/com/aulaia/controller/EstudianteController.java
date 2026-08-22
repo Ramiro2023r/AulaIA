@@ -69,11 +69,13 @@ public class EstudianteController {
             @RequestParam(required = false) String codigo,
             @Parameter(description = "Filtro por nombre (coincidencia parcial sobre nombres)")
             @RequestParam(required = false) String nombre,
+            @Parameter(description = "Búsqueda general (parcial, case-insensitive) sobre codigo, nombres y apellidos")
+            @RequestParam(required = false) String buscar,
             @Parameter(description = "Filtro por id de seccion")
             @RequestParam(required = false) Long seccion,
             @Parameter(description = "Filtro por estado activo")
             @RequestParam(required = false) Boolean activo) {
-        return ResponseEntity.ok(estudianteService.listar(codigo, nombre, seccion, activo));
+        return ResponseEntity.ok(estudianteService.listar(codigo, nombre, buscar, seccion, activo));
     }
 
     @GetMapping("/{id}")

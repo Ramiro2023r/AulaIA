@@ -292,6 +292,7 @@ class DocenteControllerTest {
     void patchDesactivarDocenteComoAdminDevuelve200() throws Exception {
         when(docenteRepository.findById(1L))
                 .thenReturn(Optional.of(docente(1L, usuario(3L, "d.profesor", Rol.DOCENTE))));
+        when(docenteRepository.save(any(Docente.class))).thenAnswer(inv -> inv.getArgument(0));
         when(docenteRepository.saveAndFlush(any(Docente.class))).thenAnswer(inv -> inv.getArgument(0));
 
         mockMvc.perform(patch("/api/v1/docentes/1/desactivar")

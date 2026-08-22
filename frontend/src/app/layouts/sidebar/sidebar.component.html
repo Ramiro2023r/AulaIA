@@ -9,7 +9,7 @@
 
 <!-- Sidebar Panel -->
 <nav
-  class="fixed left-0 top-0 h-screen z-50 flex flex-col py-md bg-white border-r border-outline-variant shadow-sm w-64 transition-transform duration-300"
+  class="fixed left-0 top-0 h-screen z-50 flex flex-col py-md bg-surface border-r border-outline-variant shadow-sm w-64 transition-transform duration-300"
   [class.-translate-x-full]="!isOpen"
   [class.translate-x-0]="isOpen"
   [class.md:translate-x-0]="true"
@@ -21,7 +21,7 @@
     <span class="material-symbols-outlined text-primary text-3xl" data-weight="fill">school</span>
     <div>
       <div class="font-headline-md text-headline-md font-extrabold text-primary">AulaIA</div>
-      <div class="font-label-sm text-label-sm text-on-surface-variant">Admin Portal</div>
+      <div class="font-label-sm text-label-sm text-on-surface-variant">{{ portalName }}</div>
     </div>
     <!-- Close button (mobile only) -->
     <button
@@ -55,18 +55,10 @@
 
   <!-- Footer area -->
   <div class="px-md mt-auto pt-md border-t border-outline-variant">
-    <!-- Modo Aula CTA -->
-    <a
-      routerLink="/modo-aula"
-      class="w-full flex items-center justify-center gap-sm bg-primary-container text-on-primary-container font-label-md text-label-md py-md rounded-lg hover:bg-primary hover:text-white transition-colors mb-md min-h-[44px] no-underline"
-    >
-      <span class="material-symbols-outlined">cast_for_education</span>
-      Modo Aula
-    </a>
-
     <!-- Logout -->
     <button
       class="flex items-center gap-md px-md py-sm w-full text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors"
+      (click)="logout()"
     >
       <span class="material-symbols-outlined">logout</span>
       <span class="font-label-md text-label-md">Cerrar sesión</span>

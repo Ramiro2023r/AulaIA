@@ -84,25 +84,39 @@ public class EstudianteService {
     /**
      * Listado con los filtros documentados del Prompt 4.3 (07-PLAN):
      * codigo, nombre, seccion y activo, combinables entre sí (AND).
-     *
-     * <p>Semántica mínima elegida (los documentos no definen otra): codigo
-     * = igualdad exacta (case-sensitive, coherente con la UNIQUE);
-     * nombre = coincidencia parcial sobre el campo {@code nombres}
-     * (interpretación literal del modelo y del buscador de la UI); seccion
-     * = por id de sección; activo = true/false. Sin paginación (no
-     * documentada en 07-PLAN 4.3). Orden estable por id (creación).
+     * <p>buscar = búsqueda general (parcial, insensible a mayúsculas) sobre
+     * codigo, nombres Y apellidos con OR, pensada para la barra de búsqueda
+     * de la UI que filtra en tiempo real. Si se envía buscar, los filtros
+     * codigo/nombre individuales se ignoran.
      */
     @Transactional(readOnly = true)
     public List<EstudianteResponse> listar(String codigo, String nombre, Long seccionId, Boolean activo) {
+        return listar(codigo, nombre, null, seccionId, activo);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EstudianteResponse> listar(String codigo, String nombre, String buscar, Long seccionId, Boolean activo) {
         Specification<Estudiante> spec = Specification.where(null);
-        if (codigo != null && !codigo.isBlank()) {
-            String valor = codigo.trim();
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("codigo"), valor));
+
+        if (buscar != null && !buscar.isBlank()) {
+            // Búsqueda general OR sobre codigo (parcial), nombres y apellidos
+            String patron = "%" + buscar.trim().toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("codigo")), patron),
+                    cb.like(cb.lower(root.get("nombres")), patron),
+                    cb.like(cb.lower(root.get("apellidos")), patron)
+            ));
+        } else {
+            if (codigo != null && !codigo.isBlank()) {
+                String valor = codigo.trim();
+                spec = spec.and((root, query, cb) -> cb.equal(root.get("codigo"), valor));
+            }
+            if (nombre != null && !nombre.isBlank()) {
+                String valor = "%" + nombre.trim() + "%";
+                spec = spec.and((root, query, cb) -> cb.like(root.get("nombres"), valor));
+            }
         }
-        if (nombre != null && !nombre.isBlank()) {
-            String valor = "%" + nombre.trim() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(root.get("nombres"), valor));
-        }
+
         if (seccionId != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("seccion").get("id"), seccionId));
         }

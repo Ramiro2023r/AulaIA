@@ -11,11 +11,11 @@
   <div class="flex flex-col md:flex-row gap-4 mb-6">
     <div class="flex-1">
       <label class="block text-sm font-medium text-on-surface-variant mb-1">Buscar</label>
-      <input type="text" class="input-text w-full" placeholder="Nombre o código..." [ngModel]="filterQuery()" (ngModelChange)="filterQuery.set($event)" (keyup.enter)="aplicarFiltros()">
+      <input type="text" class="input-text w-full" placeholder="Nombre, apellido o código..." [ngModel]="filterQuery()" (ngModelChange)="onSearchChange($event)">
     </div>
     <div class="w-full md:w-64">
       <label class="block text-sm font-medium text-on-surface-variant mb-1">Sección</label>
-      <select class="input-text w-full" [ngModel]="filterSeccion()" (ngModelChange)="filterSeccion.set($event)">
+      <select class="input-text w-full" [ngModel]="filterSeccion()" (ngModelChange)="filterSeccion.set($event); onSeccionChange()">
         <option [value]="null">Todas</option>
         <option *ngFor="let sec of secciones()" [value]="sec.id">{{ sec.grado.nombre }} - {{ sec.nombre }}</option>
       </select>

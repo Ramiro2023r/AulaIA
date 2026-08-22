@@ -58,6 +58,15 @@ public class Docente {
     @Column(nullable = false)
     private boolean activo = true;
 
+    @Column(name = "correo_alternativo", length = 100)
+    private String correoAlternativo;
+
+    @Column(length = 20)
+    private String telefono;
+
+    @Column(columnDefinition = "TEXT")
+    private String biografia;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

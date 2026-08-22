@@ -1,6 +1,8 @@
 package com.aulaia.controller;
 
 import com.aulaia.dto.ApiErrorResponse;
+import com.aulaia.dto.docente.DocenteProfileResponse;
+import com.aulaia.dto.docente.DocenteProfileUpdateRequest;
 import com.aulaia.dto.docente.DocenteRequest;
 import com.aulaia.dto.docente.DocenteResponse;
 import com.aulaia.dto.docente.DocenteUpdateRequest;
@@ -16,6 +18,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -146,5 +150,58 @@ public class DocenteController {
     })
     public ResponseEntity<DocenteResponse> desactivar(@PathVariable Long id) {
         return ResponseEntity.ok(docenteService.desactivar(id));
+    }
+
+    @PatchMapping("/{id}/reset-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Restablecer contraseña del docente",
+            description = "Solo ADMIN. Establece una nueva contraseña para el docente.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contraseña restablecida"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+            @ApiResponse(responseCode = "401", description = "Autenticación requerida"),
+            @ApiResponse(responseCode = "403", description = "Solo ADMIN puede restablecer contraseñas"),
+            @ApiResponse(responseCode = "404", description = "TEACHER_NOT_FOUND")
+    })
+    public ResponseEntity<Void> restablecerPassword(@PathVariable Long id,
+                                                    @Valid @RequestBody com.aulaia.dto.docente.ResetPasswordRequest request) {
+        docenteService.restablecerPassword(id, request.password());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/perfil")
+    @PreAuthorize("hasRole('DOCENTE')")
+    @Operation(summary = "Obtener perfil del docente logueado",
+            description = "Solo DOCENTE. Obtiene los datos del perfil actual.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Perfil obtenido",
+                    content = @Content(schema = @Schema(implementation = DocenteProfileResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticación requerida",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "TEACHER_NOT_FOUND",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<DocenteProfileResponse> obtenerPerfil(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(docenteService.obtenerPerfilDocente(userDetails.getUsername()));
+    }
+
+    @PutMapping("/perfil")
+    @PreAuthorize("hasRole('DOCENTE')")
+    @Operation(summary = "Actualizar perfil del docente logueado",
+            description = "Solo DOCENTE. Actualiza correo alternativo, teléfono y biografía.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Perfil actualizado",
+                    content = @Content(schema = @Schema(implementation = DocenteProfileResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticación requerida",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "TEACHER_NOT_FOUND",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<DocenteProfileResponse> actualizarPerfil(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody DocenteProfileUpdateRequest request) {
+        return ResponseEntity.ok(docenteService.actualizarPerfilDocente(userDetails.getUsername(), request));
     }
 }

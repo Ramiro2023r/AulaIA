@@ -25,6 +25,7 @@ export class DocenteLayoutComponent {
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/docente/dashboard' },
     { label: 'Justificaciones', icon: 'assignment_late', route: '/docente/justificaciones' },
+    { label: 'Reportes', icon: 'analytics', route: '/docente/reportes' },
   ];
 
   toggleSidebar(): void {

@@ -133,6 +133,11 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'asistencias',
+        loadComponent: () =>
+          import('./features/admin/asistencias/pages/asistencias-list/asistencias-list.component').then(m => m.AsistenciasListComponent)
+      },
+      {
         path: 'justificaciones',
         loadComponent: () =>
           import('./features/justificaciones/pages/justificaciones-list/justificaciones-list.component').then(m => m.JustificacionesListComponent),
@@ -141,6 +146,21 @@ export const routes: Routes = [
         path: 'auditoria',
         loadComponent: () =>
           import('./features/admin/auditoria/auditoria-list/auditoria-list.component').then(m => m.AuditoriaListComponent),
+      },
+      {
+        path: 'reportes',
+        loadComponent: () =>
+          import('./features/admin/reportes/reportes.component').then(m => m.ReportesComponent),
+      },
+      {
+        path: 'ia',
+        loadComponent: () =>
+          import('./features/ia/ia-asistente/ia-asistente.component').then(m => m.IaAsistenteComponent),
+      },
+      {
+        path: 'ajustes',
+        loadComponent: () =>
+          import('./features/admin/ajustes/ajustes.component').then(m => m.AjustesComponent),
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
@@ -162,6 +182,21 @@ export const routes: Routes = [
         path: 'justificaciones',
         loadComponent: () =>
           import('./features/justificaciones/pages/justificaciones-list/justificaciones-list.component').then(m => m.JustificacionesListComponent),
+      },
+      {
+        path: 'ia',
+        loadComponent: () =>
+          import('./features/ia/ia-asistente/ia-asistente.component').then(m => m.IaAsistenteComponent),
+      },
+      {
+        path: 'reportes',
+        loadComponent: () =>
+          import('./features/docente/reportes/reportes.component').then(m => m.ReportesComponent),
+      },
+      {
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./features/docente/configuracion/configuracion.component').then(m => m.ConfiguracionComponent),
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],

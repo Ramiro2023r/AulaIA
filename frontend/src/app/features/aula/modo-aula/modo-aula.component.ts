@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
 import { AsistenciaService, MetodoRegistro, AsistenciaResponse } from '../../../core/services/asistencia.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -22,10 +22,14 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private asistenciaService = inject(AsistenciaService);
   private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   public voiceService = inject(VoiceService);
+  
+  // ID de la sesión de la clase actual
+  private sesionId: number | null = null;
 
   // Estados de cámara
   cameraState = signal<CameraState>('pending');
@@ -46,9 +50,14 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
   private lastScannedCode: string | null = null;
 
   ngOnInit(): void {
-    // We will initialize the camera in ngAfterViewInit or manually.
-    // However, it's safer to do it after view init when the video element is bound, 
-    // but we can also use a small timeout to let the view render.
+    // Obtenemos el sesionId desde los query params de la ruta
+    this.route.queryParams.subscribe(params => {
+      if (params['sesionId']) {
+        this.sesionId = Number(params['sesionId']);
+      } else {
+        console.warn('No se recibió un sesionId en la ruta.');
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -69,8 +78,9 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Elige la cámara trasera si está disponible
-      const selectedDeviceId = videoInputDevices[videoInputDevices.length - 1].deviceId;
+      // Usar undefined para que el navegador decida la cámara predeterminada
+      // o el primer dispositivo si undefined falla en algunas versiones.
+      const selectedDeviceId = undefined;
 
       this.controls = await this.codeReader.decodeFromVideoDevice(
         selectedDeviceId, 
@@ -103,7 +113,7 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
   }
 
   closeModoAula(): void {
-    this.router.navigate(['/admin/dashboard']); // O la ruta que corresponda al usuario
+    this.router.navigate(['/docente/dashboard']);
   }
 
   // --- Procesamiento ---
@@ -115,15 +125,23 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
     this.lastResult.set(null);
     this.errorMessage.set(null);
 
-    this.asistenciaService.registrar({ codigo, metodo }).subscribe({
+    if (!this.sesionId) {
+      this.scanResultState.set('error');
+      this.errorMessage.set('Falta el ID de la sesión. Asegúrate de abrir la clase desde el dashboard.');
+      this.voiceService.speak('Error. No se encontró una sesión activa.');
+      this.resetScanner(3000);
+      return;
+    }
+
+    this.asistenciaService.registrar({ codigo, metodo, sesionId: this.sesionId }).subscribe({
       next: (res) => {
         this.scanResultState.set('success');
         this.lastResult.set(res);
         
         if (res.estado === 'PRESENTE') {
-          this.voiceService.speak(`¡Hola ${res.nombre}! Tu asistencia fue registrada correctamente. ¡Que tengas una excelente clase!`);
+          this.voiceService.speak(`¡Hola ${res.estudianteNombre}! Tu asistencia fue registrada correctamente. ¡Que tengas una excelente clase!`);
         } else if (res.estado === 'TARDANZA') {
-          this.voiceService.speak(`${res.nombre}, asistencia registrada con tardanza.`);
+          this.voiceService.speak(`${res.estudianteNombre}, asistencia registrada con tardanza.`);
         }
         
         this.resetScanner(4000);

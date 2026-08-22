@@ -21,13 +21,13 @@
           <th class="p-3 font-medium">Motivo</th>
           <th class="p-3 font-medium">Asistencia</th>
           <th class="p-3 font-medium">Estado Justif.</th>
-          <th class="p-3 font-medium text-right">Acciones</th>
+          <th *ngIf="isAdmin()" class="p-3 font-medium text-right">Acciones</th>
         </tr>
       </thead>
       <tbody>
         <!-- Loading -->
         <tr *ngIf="loading()">
-          <td colspan="7" class="p-6 text-center text-on-surface-variant">Cargando justificaciones...</td>
+          <td [attr.colspan]="isAdmin() ? 7 : 6" class="p-6 text-center text-on-surface-variant">Cargando justificaciones...</td>
         </tr>
 
         <!-- Filas de datos -->
@@ -58,7 +58,7 @@
               {{ j.estado }}
             </span>
           </td>
-          <td class="p-3 text-right">
+          <td *ngIf="isAdmin()" class="p-3 text-right">
             <div class="flex items-center justify-end gap-2" *ngIf="j.estado === 'PENDIENTE'">
               <button
                 class="btn btn-text text-secondary w-8 h-8 p-0 rounded-full hover:bg-secondary/10"
@@ -78,7 +78,7 @@
 
         <!-- Sin datos -->
         <tr *ngIf="!loading() && justificaciones().length === 0">
-          <td colspan="7" class="p-6 text-center text-on-surface-variant">No hay justificaciones registradas.</td>
+          <td [attr.colspan]="isAdmin() ? 7 : 6" class="p-6 text-center text-on-surface-variant">No hay justificaciones registradas.</td>
         </tr>
       </tbody>
     </table>

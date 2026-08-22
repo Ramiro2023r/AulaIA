@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterModule, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 export interface NavItem {
   label: string;
@@ -16,7 +17,10 @@ export interface NavItem {
 })
 export class SidebarComponent {
   @Input() isOpen = false;
+  @Input() portalName = 'Admin Portal';
   @Output() closed = new EventEmitter<void>();
+  private auth = inject(AuthService);
+  private router = inject(Router);
   @Input() navItems: NavItem[] = [
     { label: 'Dashboard',   icon: 'dashboard',          route: '/admin/dashboard' },
     { label: 'Estudiantes', icon: 'school',              route: '/admin/estudiantes' },
@@ -38,6 +42,11 @@ export class SidebarComponent {
   }
 
   onBackdropClick(): void {
+    this.close();
+  }
+
+  logout(): void {
+    this.auth.logout();
     this.close();
   }
 }

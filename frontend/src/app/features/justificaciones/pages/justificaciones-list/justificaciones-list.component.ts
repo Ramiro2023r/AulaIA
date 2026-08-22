@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { JustificacionService, JustificacionResponse } from '../../../../core/services/justificacion.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header.component';
 
@@ -23,8 +24,14 @@ export class JustificacionesListComponent implements OnInit {
   dialogMessage = signal('');
   dialogIsDanger = signal(false);
   pendingAction: (() => void) | null = null;
+  isAdmin = signal(false);
 
-  constructor(private justificacionService: JustificacionService) {}
+  constructor(
+    private justificacionService: JustificacionService,
+    private authService: AuthService
+  ) {
+    this.isAdmin.set(this.authService.role() === 'ADMIN');
+  }
 
   ngOnInit(): void {
     this.cargarJustificaciones();

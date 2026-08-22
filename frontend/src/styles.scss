@@ -1,3 +1,103 @@
+:root {
+  --primary-fixed-dim: #b4c5ff;
+  --surface-container-low: #f2f3ff;
+  --primary-fixed: #dbe1ff;
+  --on-error: #ffffff;
+  --surface-variant: #dae2fd;
+  --inverse-primary: #b4c5ff;
+  --tertiary-container: #996100;
+  --surface-container-lowest: #ffffff;
+  --tertiary: #784b00;
+  --error-container: #ffdad6;
+  --inverse-surface: #283044;
+  --outline: #737686;
+  --on-primary-container: #eeefff;
+  --on-primary-fixed-variant: #003ea8;
+  --inverse-on-surface: #eef0ff;
+  --secondary-fixed: #6ffbbe;
+  --on-background: #131b2e;
+  --surface-bright: #faf8ff;
+  --primary-container: #2563eb;
+  --on-surface: #131b2e;
+  --on-tertiary: #ffffff;
+  --surface: #faf8ff;
+  --on-surface-variant: #434655;
+  --background: #faf8ff;
+  --on-primary-fixed: #00174b;
+  --on-secondary-fixed: #002113;
+  --error: #ba1a1a;
+  --on-secondary-fixed-variant: #005236;
+  --tertiary-fixed-dim: #ffb95f;
+  --on-error-container: #93000a;
+  --primary: #004ac6;
+  --secondary-container: #6cf8bb;
+  --on-tertiary-fixed: #2a1700;
+  --outline-variant: #c3c6d7;
+  --surface-tint: #0053db;
+  --surface-container-highest: #dae2fd;
+  --on-tertiary-fixed-variant: #653e00;
+  --on-primary: #ffffff;
+  --on-secondary-container: #00714d;
+  --tertiary-fixed: #ffddb8;
+  --secondary-fixed-dim: #4edea3;
+  --surface-container: #eaedff;
+  --secondary: #006c49;
+  --on-tertiary-container: #ffeedd;
+  --surface-dim: #d2d9f4;
+  --surface-container-high: #e2e7ff;
+  --on-secondary: #ffffff;
+}
+
+.dark {
+  --primary-fixed-dim: #b4c5ff;
+  --surface-container-low: #2d303b;
+  --primary-fixed: #dbe1ff;
+  --on-error: #ffffff;
+  --surface-variant: #2d303b;
+  --inverse-primary: #b4c5ff;
+  --tertiary-container: #996100;
+  --surface-container-lowest: #2d303b;
+  --tertiary: #784b00;
+  --error-container: #ffdad6;
+  --inverse-surface: #e2e2e9;
+  --outline: #8e919e;
+  --on-primary-container: #eeefff;
+  --on-primary-fixed-variant: #003ea8;
+  --inverse-on-surface: #1a1c23;
+  --secondary-fixed: #6ffbbe;
+  --on-background: #e2e2e9;
+  --surface-bright: #1a1c23;
+  --primary-container: #2563eb;
+  --on-surface: #e2e2e9;
+  --on-tertiary: #ffffff;
+  --surface: #1a1c23;
+  --on-surface-variant: #a0a0ab;
+  --background: #1a1c23;
+  --on-primary-fixed: #00174b;
+  --on-secondary-fixed: #002113;
+  --error: #ba1a1a;
+  --on-secondary-fixed-variant: #005236;
+  --tertiary-fixed-dim: #ffb95f;
+  --on-error-container: #93000a;
+  --primary: #4285f4;
+  --secondary-container: #6cf8bb;
+  --on-tertiary-fixed: #2a1700;
+  --outline-variant: #4b4b58;
+  --surface-tint: #1a1c23;
+  --surface-container-highest: #2d303b;
+  --on-tertiary-fixed-variant: #653e00;
+  --on-primary: #ffffff;
+  --on-secondary-container: #00714d;
+  --tertiary-fixed: #ffddb8;
+  --secondary-fixed-dim: #4edea3;
+  --surface-container: #2d303b;
+  --secondary: #006c49;
+  --on-tertiary-container: #ffeedd;
+  --surface-dim: #1a1c23;
+  --surface-container-high: #2d303b;
+  --on-secondary: #ffffff;
+}
+
 /* You can add global styles to this file, and also import other style files */
 @tailwind base;
 @tailwind components;
@@ -20,11 +120,11 @@
   }
   
   .btn-primary {
-    @apply bg-primary text-on-primary hover:bg-primary/90 focus:ring-primary;
+    @apply bg-primary text-on-primary hover:opacity-90 focus:ring-primary;
   }
   
   .btn-secondary {
-    @apply bg-secondary-container text-on-secondary-container hover:bg-secondary-container/90 focus:ring-secondary;
+    @apply bg-secondary-container text-on-secondary-container hover:opacity-90 focus:ring-secondary;
   }
 
   .btn-text {

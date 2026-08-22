@@ -33,4 +33,6 @@ public interface DocenteMapper {
     DocenteResponse toResponse(Docente docente);
 
     DocenteResponse.UsuarioResumen toUsuarioResumen(Usuario usuario);
+
+    com.aulaia.dto.docente.DocenteProfileResponse toProfileResponse(Docente docente);
 }

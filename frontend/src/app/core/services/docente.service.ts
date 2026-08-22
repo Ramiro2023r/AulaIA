@@ -5,10 +5,15 @@ import { environment } from '../../../environments/environment';
 
 export interface DocenteResponse {
   id: number;
-  username: string;
   nombres: string;
   apellidos: string;
   activo: boolean;
+  usuario: {
+    id: number;
+    username: string;
+    rol: string;
+    activo: boolean;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -50,5 +55,9 @@ export class DocenteService {
 
   desactivar(id: number): Observable<DocenteResponse> {
     return this.http.patch<DocenteResponse>(`${this.apiUrl}/${id}/desactivar`, {});
+  }
+
+  restablecerPassword(id: number, password: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${id}/reset-password`, { password });
   }
 }

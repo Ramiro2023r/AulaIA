@@ -1,0 +1,76 @@
+<app-page-header 
+  title="Historial de Asistencias" 
+  description="Panel de control para consultar y gestionar los registros de asistencia en tiempo real.">
+</app-page-header>
+
+<!-- Filtros -->
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant mt-6 p-4 flex flex-col md:flex-row gap-4">
+  <div class="flex-1 max-w-xs">
+    <label class="block text-xs font-medium text-on-surface-variant mb-1">Fecha</label>
+    <input type="date" [formControl]="fechaCtrl" class="input-text w-full">
+  </div>
+  
+  <div class="flex-1 max-w-xs">
+    <label class="block text-xs font-medium text-on-surface-variant mb-1">Estado</label>
+    <select [formControl]="estadoCtrl" class="input-text w-full">
+      <option value="">Todos</option>
+      <option value="PRESENTE">Presentes</option>
+      <option value="TARDE">Tardanzas</option>
+      <option value="AUSENTE">Ausentes</option>
+      <option value="JUSTIFICADO">Justificados</option>
+    </select>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="bg-surface rounded-xl shadow-sm border border-outline-variant overflow-hidden mt-6">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-max">
+      <thead>
+        <tr class="bg-surface-container-light border-b border-outline-variant">
+          <th class="p-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Estudiante</th>
+          <th class="p-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Hora Reg.</th>
+          <th class="p-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Método</th>
+          <th class="p-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Estado</th>
+          <th class="p-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Observación</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading()">
+          <td colspan="5" class="p-8 text-center text-on-surface-variant">
+            Cargando asistencias...
+          </td>
+        </tr>
+        <tr *ngIf="!loading() && asistencias().length === 0">
+          <td colspan="5" class="p-8 text-center text-on-surface-variant">
+            No se encontraron registros de asistencia para los filtros seleccionados.
+          </td>
+        </tr>
+        <tr *ngFor="let ast of asistencias()" class="border-b border-outline-variant hover:bg-surface-container-light transition-colors">
+          <td class="p-3 text-on-surface font-medium">
+            {{ ast.estudianteApellido }}, {{ ast.estudianteNombre }}
+          </td>
+          <td class="p-3 text-on-surface-variant text-sm font-mono">
+            {{ formatHora(ast.fechaHora) }}
+          </td>
+          <td class="p-3 text-on-surface-variant text-sm">
+            {{ ast.metodo }}
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" 
+                  [ngClass]="getEstadoClass(ast.estado)">
+              {{ ast.estado }}
+            </span>
+          </td>
+          <td class="p-3 text-on-surface-variant text-sm max-w-xs truncate" [title]="ast.observacion || ''">
+            {{ ast.observacion || '-' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="p-3 border-t border-outline-variant bg-surface-container-light text-sm text-on-surface-variant flex justify-between items-center">
+    <span>Mostrando {{ asistencias().length }} de {{ totalElements() }} resultados</span>
+    <span class="text-xs text-on-surface-variant">Modificación manual en desarrollo...</span>
+  </div>
+</div>

@@ -112,35 +112,145 @@
 
 <!-- Confirmación a Pantalla Completa (PRESENTE / TARDANZA) -->
 @if (scanResultState() === 'success' && lastResult()) {
-  <div class="fixed inset-0 z-50 flex flex-col items-center justify-center p-xl text-center transition-all confirm-overlay"
-       [ngClass]="{
-         'bg-primary-container text-on-primary-container': lastResult()?.estado === 'PRESENTE',
-         'bg-tertiary-container text-on-tertiary-container': lastResult()?.estado === 'TARDANZA'
-       }">
-    <span class="material-symbols-outlined text-[120px] mb-lg" style="font-variation-settings: 'FILL' 1;">
-      {{ lastResult()?.estado === 'PRESENTE' ? 'check_circle' : 'schedule' }}
-    </span>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-surface-container-low/90 backdrop-blur-sm p-md sm:p-lg md:p-xl transition-all overflow-hidden confirm-overlay">
     
-    <h2 class="font-display text-[64px] font-bold mb-sm">
-      {{ lastResult()?.nombre }}
-    </h2>
-    
-    <div class="text-[40px] font-headline-lg font-bold tracking-wider mb-xl opacity-90">
-      {{ lastResult()?.estado === 'PRESENTE' ? 'PRESENTE' : 'TARDANZA' }}
+    <!-- Decorative ambient background elements -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+      <div class="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full opacity-20 blur-3xl transition-colors duration-500"
+           [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'bg-secondary-container' : 'bg-tertiary-container'"></div>
+      <div class="absolute -bottom-[20%] -left-[10%] w-[40%] h-[40%] rounded-full opacity-30 blur-3xl transition-colors duration-500"
+           [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'bg-primary-fixed-dim' : 'bg-tertiary-fixed'"></div>
     </div>
-    
-    <div class="text-[32px] bg-black/10 px-xl py-md rounded-full">
-      {{ lastResult()?.hora | date:'shortTime' }}
-    </div>
+
+    <!-- Main Confirmation Card -->
+    <main class="w-full max-w-md bg-surface rounded-xl shadow-lg border border-outline-variant/30 flex flex-col items-center text-center relative z-10 animate-entrance overflow-hidden">
+      <!-- Header Color Bar -->
+      <div class="h-2 w-full"
+           [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'bg-secondary-fixed-dim' : 'bg-tertiary-fixed-dim'"></div>
+      
+      <div class="p-xl w-full flex flex-col items-center">
+        <!-- Large Icon -->
+        <div class="w-24 h-24 rounded-full flex items-center justify-center mb-lg animate-pop relative"
+             [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'bg-secondary-container/30' : 'bg-tertiary-container/30'">
+          
+          <!-- Inner circle for extra depth -->
+          <div class="w-20 h-20 rounded-full flex items-center justify-center shadow-sm"
+               [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'bg-secondary-container' : 'bg-tertiary-container'">
+            <span class="material-symbols-outlined text-[48px]" style="font-variation-settings: 'FILL' 1;"
+                  [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'text-on-secondary-container' : 'text-on-tertiary-container'">
+              {{ lastResult()?.estado === 'PRESENTE' ? 'check_circle' : 'schedule' }}
+            </span>
+          </div>
+          
+          <!-- Sparkles effect (Only for PRESENTE) -->
+          @if (lastResult()?.estado === 'PRESENTE') {
+            <span class="material-symbols-outlined text-secondary-fixed-dim absolute -top-1 -right-1 text-[20px] animate-pulse">arrow_back_ios_new</span>
+            <span class="material-symbols-outlined text-secondary-fixed-dim absolute -bottom-2 -left-2 text-[16px] animate-pulse delay-75">arrow_back_ios_new</span>
+          }
+        </div>
+
+        <!-- Greetings & Primary Text -->
+        <h1 class="font-headline-lg text-headline-lg text-primary mb-xs tracking-tight">¡Hola, {{ lastResult()?.estudianteNombre }}!</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant mb-xl">
+          Asistencia registrada correctamente
+        </p>
+
+        <!-- Details Box -->
+        <div class="w-full bg-surface-container rounded-lg p-md mb-xl flex flex-col gap-md border border-outline-variant/50 shadow-sm">
+          <div class="flex flex-row items-center justify-between">
+            <!-- Time -->
+            <div class="flex items-center gap-sm text-on-surface">
+              <span class="material-symbols-outlined text-outline">schedule</span>
+              <span class="font-body-md text-body-md text-on-surface-variant">Hora de registro:</span>
+              <strong class="font-label-md text-label-md text-on-surface">{{ lastResult()?.fechaHora | date:'shortTime' }}</strong>
+            </div>
+            
+            <!-- Status Badge -->
+            <div class="px-sm py-[2px] rounded-full flex items-center gap-xs border shadow-sm"
+                 [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'bg-secondary-container border-secondary-fixed-dim/50' : 'bg-tertiary-container border-tertiary-fixed-dim/50'">
+              <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;"
+                    [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'text-on-secondary-container' : 'text-on-tertiary-container'">
+                {{ lastResult()?.estado === 'PRESENTE' ? 'how_to_reg' : 'schedule' }}
+              </span>
+              <span class="font-label-sm text-label-sm tracking-wider"
+                    [ngClass]="lastResult()?.estado === 'PRESENTE' ? 'text-on-secondary-container' : 'text-on-tertiary-container'">
+                {{ lastResult()?.estado === 'PRESENTE' ? 'PRESENTE' : 'TARDANZA' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motivational Text -->
+        @if (lastResult()?.estado === 'PRESENTE') {
+          <div class="w-full bg-primary-fixed/40 px-lg py-md rounded-lg mb-xl border border-primary-fixed-dim/30">
+            <p class="font-body-md text-body-md text-primary font-medium flex items-center justify-center gap-sm">
+              <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+              "¡Que tengas una excelente clase!"
+            </p>
+          </div>
+        } @else {
+          <div class="w-full bg-tertiary-container/20 px-lg py-md rounded-lg mb-xl border border-tertiary-fixed-dim/30">
+            <p class="font-body-md text-body-md text-tertiary font-medium flex items-center justify-center gap-sm">
+              <span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">directions_run</span>
+              "¡Llegaste justo a tiempo para aprender!"
+            </p>
+          </div>
+        }
+
+        <button (click)="closeModoAula()" class="mt-md text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors underline decoration-outline-variant hover:decoration-primary underline-offset-4">
+          Cerrar Modo Aula
+        </button>
+      </div>
+    </main>
   </div>
 }
 
-<!-- Confirmación a Pantalla Completa (ERROR) -->
-@if (scanResultState() === 'error' && errorMessage()) {
-  <div class="fixed inset-0 z-50 bg-error-container text-on-error-container flex flex-col items-center justify-center p-xl text-center transition-all confirm-overlay">
-    <span class="material-symbols-outlined text-[100px] mb-lg" style="font-variation-settings: 'FILL' 1;">error</span>
-    <h2 class="font-display text-[48px] font-bold mb-md">Vuelve a intentarlo</h2>
-    <p class="text-[32px] font-headline-md opacity-90">{{ errorMessage() }}</p>
+<!-- Confirmación<!-- Error a Pantalla Completa -->
+@if (scanResultState() === 'error') {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-surface-container-low/90 backdrop-blur-sm p-md sm:p-lg md:p-xl transition-all overflow-hidden confirm-overlay">
+    
+    <!-- Decorative ambient background elements -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+      <div class="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-error-container opacity-20 blur-3xl transition-colors duration-500"></div>
+      <div class="absolute -bottom-[20%] -left-[10%] w-[40%] h-[40%] rounded-full bg-error opacity-10 blur-3xl transition-colors duration-500"></div>
+    </div>
+
+    <!-- Main Error Card -->
+    <main class="w-full max-w-md bg-surface rounded-xl shadow-lg border border-outline-variant/30 flex flex-col items-center text-center relative z-10 animate-entrance overflow-hidden">
+      <!-- Header Color Bar -->
+      <div class="h-2 w-full bg-error"></div>
+      
+      <div class="p-xl w-full flex flex-col items-center">
+        <!-- Large Icon -->
+        <div class="w-24 h-24 rounded-full flex items-center justify-center mb-lg animate-pop relative bg-error-container/50">
+          
+          <!-- Inner circle for extra depth -->
+          <div class="w-20 h-20 rounded-full flex items-center justify-center shadow-sm bg-error-container">
+            <span class="material-symbols-outlined text-[48px] text-on-error-container" style="font-variation-settings: 'FILL' 1;">
+              error
+            </span>
+          </div>
+        </div>
+
+        <!-- Greetings & Primary Text -->
+        <h1 class="font-headline-lg text-headline-lg text-error mb-xs tracking-tight">¡Oops!</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant mb-xl">
+          {{ errorMessage() }}
+        </p>
+
+        <!-- Motivational Text -->
+        <div class="w-full bg-error-container/20 px-lg py-md rounded-lg mb-xl border border-error/20">
+          <p class="font-body-md text-body-md text-error font-medium flex items-center justify-center gap-sm">
+            <span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+            "Vuelve a intentarlo o avisa a tu profesor"
+          </p>
+        </div>
+
+        <button (click)="closeModoAula()" class="mt-md text-on-surface-variant font-label-sm text-label-sm hover:text-error transition-colors underline decoration-outline-variant hover:decoration-error underline-offset-4">
+          Cerrar Modo Aula
+        </button>
+      </div>
+    </main>
   </div>
 }
 

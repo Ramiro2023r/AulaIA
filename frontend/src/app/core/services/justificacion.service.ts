@@ -23,6 +23,11 @@ export interface EvaluarJustificacionRequest {
   observaciones?: string;
 }
 
+export interface JustificacionRequest {
+  asistenciaId: number;
+  motivo: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -33,6 +38,10 @@ export class JustificacionService {
 
   listarTodas(): Observable<JustificacionResponse[]> {
     return this.http.get<JustificacionResponse[]>(this.apiUrl);
+  }
+
+  crear(request: JustificacionRequest): Observable<JustificacionResponse> {
+    return this.http.post<JustificacionResponse>(this.apiUrl, request);
   }
 
   evaluar(id: number, request: EvaluarJustificacionRequest): Observable<JustificacionResponse> {

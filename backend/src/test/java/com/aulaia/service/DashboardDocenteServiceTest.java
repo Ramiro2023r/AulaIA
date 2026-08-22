@@ -50,6 +50,8 @@ class DashboardDocenteServiceTest {
     @Mock
     private SesionClaseMapper sesionClaseMapper;
     @Mock
+    private SesionClaseService sesionClaseService;
+    @Mock
     private UsuarioRepository usuarioRepository;
     @Mock
     private DocenteRepository docenteRepository;
@@ -116,8 +118,8 @@ class DashboardDocenteServiceTest {
         sesion.setId(100L);
         sesion.setEstado(SesionClaseEstado.ABIERTA);
 
-        when(sesionClaseRepository.findByHorarioIdAndFecha(eq(10L), any(LocalDate.class)))
-                .thenReturn(Optional.of(sesion));
+        when(sesionClaseService.obtenerOCrearSesion(eq(10L), any(LocalDate.class)))
+                .thenReturn(sesion);
 
         SesionClaseResponse mockedResponse = new SesionClaseResponse(
                 100L, 10L, LocalDate.now(), SesionClaseEstado.ABIERTA, null, null, null, null, new SesionClaseResponse.CursoResumen(2L, "Mate"),

@@ -12,4 +12,5 @@ public class ReporteFiltrosDto {
     private Long seccionId;
     private Long estudianteId;
     private String estadoAsistencia;
+    private Long docenteId;
 }

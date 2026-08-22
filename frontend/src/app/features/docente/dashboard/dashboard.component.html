@@ -1,5 +1,5 @@
 <app-page-header
-  title="Dashboard"
+  title="Panel Principal"
   subtitle="Bienvenido a tu panel docente en AulaIA."
 >
 </app-page-header>
@@ -103,9 +103,9 @@
               </span>
             </div>
 
-            @if (data()?.claseActual; as clase) {
+            @if (selectedClase(); as clase) {
               <div class="mt-4 flex-1">
-                <h4 class="text-indigo-100 font-medium text-lg mb-2">Clase Actual</h4>
+                <h4 class="text-indigo-100 font-medium text-lg mb-2">Clase Seleccionada</h4>
                 <h2 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight text-white drop-shadow-sm">
                   {{ clase.curso.nombre }}
                 </h2>
@@ -116,35 +116,63 @@
                   </p>
                   <p class="flex items-center gap-2 text-lg bg-indigo-900/40 px-3 py-1 rounded-lg">
                     <span class="material-symbols-outlined text-sm">schedule</span> 
-                    {{ clase.horaInicio }} - {{ clase.horaFin }}
+                    {{ clase.horaInicio | slice:0:5 }} - {{ clase.horaFin | slice:0:5 }}
                   </p>
                 </div>
+
+                @if (clase.id === data()?.claseActual?.id && data()?.claseActualTotalEstudiantes) {
+                  <div class="mb-10 max-w-md animate-fade-in">
+                    <div class="flex justify-between items-end mb-2">
+                      <span class="text-sm font-medium text-indigo-100 uppercase tracking-wider">Asistencia en vivo</span>
+                      <span class="text-xl font-bold text-white">{{ data()?.claseActualAsistentes }} / {{ data()?.claseActualTotalEstudiantes }}</span>
+                    </div>
+                    <div class="w-full bg-indigo-900/50 rounded-full h-3 backdrop-blur-sm overflow-hidden border border-indigo-700/50 relative">
+                      <div class="bg-gradient-to-r from-emerald-400 to-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out absolute left-0 top-0 bottom-0" 
+                           [style.width]="(data()!.claseActualAsistentes! / data()!.claseActualTotalEstudiantes!) * 100 + '%'"></div>
+                    </div>
+                  </div>
+                }
               </div>
             } @else {
               <div class="mt-4 flex-1">
                 <h4 class="text-indigo-100 font-medium text-lg mb-2">Estado</h4>
                 <h2 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight text-white drop-shadow-sm">
-                  Sin clase activa
+                  Sin clase seleccionada
                 </h2>
                 <p class="text-indigo-100 text-lg mb-10 max-w-md">
-                  No tienes ninguna sesión abierta o programada para este momento específico.
+                  No tienes ninguna sesión abierta o programada para este momento específico. Selecciona una clase de tu agenda.
                 </p>
               </div>
             }
 
-            <!-- CTA Button -->
             <div class="mt-auto">
-              <button 
-                (click)="abrirModoAula()" 
-                class="btn-premium w-full sm:w-auto justify-center"
-              >
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">camera_enhance</span>
-                <span>Iniciar Modo Aula</span>
-              </button>
-              <p class="text-xs text-indigo-200 mt-4 opacity-80 flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">info</span>
-                Haz clic para registrar asistencia por reconocimiento facial o QR
-              </p>
+              @if (selectedClase()) {
+                <div class="flex flex-col sm:flex-row gap-4">
+                  @if (selectedClase().estado !== 'CERRADA') {
+                    <button 
+                      (click)="abrirModoAula(selectedClase().id)" 
+                      class="btn-premium flex-1 justify-center"
+                    >
+                      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">camera_enhance</span>
+                      <span>Iniciar Modo Aula</span>
+                    </button>
+                  }
+                  
+                  @if (selectedClase().estado === 'ABIERTA') {
+                    <button 
+                      (click)="cerrarClase(selectedClase().id)" 
+                      class="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-rose-900/30 flex items-center justify-center gap-2 border border-rose-400/50 hover:scale-[1.02] active:scale-95"
+                    >
+                      <span class="material-symbols-outlined">stop_circle</span>
+                      <span>Cerrar Clase</span>
+                    </button>
+                  }
+                </div>
+                <p class="text-xs text-indigo-200 mt-4 opacity-80 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">info</span>
+                  Haz clic para registrar asistencia por QR o codigo
+                </p>
+              }
             </div>
           </div>
         </div>
@@ -165,9 +193,18 @@
 
           <div class="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4">
             @for (clase of data()?.clasesDelDia; track clase.horarioId) {
-              <div class="glass-list-item flex justify-between items-center group cursor-pointer relative overflow-hidden">
+              <div 
+                (click)="seleccionarClase(clase)"
+                class="glass-list-item flex justify-between items-center group cursor-pointer relative overflow-hidden transition-all duration-300"
+                [class.bg-indigo-50]="selectedClase()?.id === clase.id"
+                [class.dark:bg-indigo-900]="selectedClase()?.id === clase.id"
+                [class.dark:bg-opacity-20]="selectedClase()?.id === clase.id"
+                [class.border-indigo-200]="selectedClase()?.id === clase.id"
+                [class.dark:border-indigo-800]="selectedClase()?.id === clase.id">
                 <!-- Hover effect strip -->
-                <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 transition-transform duration-300 group-hover:translate-x-0"
+                     [class.translate-x-0]="selectedClase()?.id === clase.id"
+                     [class.-translate-x-full]="selectedClase()?.id !== clase.id"></div>
                 
                 <div class="pl-2">
                   <h4 class="text-base font-bold text-slate-800 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ clase.curso.nombre }}</h4>
@@ -209,6 +246,95 @@
               </div>
             }
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Smart Insights Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+      
+      <!-- Estudiantes en Riesgo -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-rose-500">warning</span>
+            Estudiantes en Riesgo
+          </h3>
+        </div>
+        
+        <div class="overflow-x-auto flex-1">
+          <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+            <thead class="text-xs uppercase bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400">
+              <tr>
+                <th class="px-4 py-3 rounded-l-lg">Estudiante</th>
+                <th class="px-4 py-3">Curso / Sección</th>
+                <th class="px-4 py-3 text-center rounded-r-lg">Faltas</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (estudiante of data()?.estudiantesRiesgo; track estudiante.estudianteId) {
+                <tr class="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <td class="px-4 py-3 font-medium text-slate-800 dark:text-slate-200 truncate max-w-[150px]" [title]="estudiante.estudianteNombre">{{ estudiante.estudianteNombre }}</td>
+                  <td class="px-4 py-3 truncate max-w-[120px]" [title]="estudiante.cursoNombre + ' (' + estudiante.seccionNombre + ')'">{{ estudiante.cursoNombre }} ({{ estudiante.seccionNombre }})</td>
+                  <td class="px-4 py-3 text-center">
+                    <span class="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 py-1 px-2.5 rounded-lg font-bold">
+                      {{ estudiante.cantidadFaltas }}
+                    </span>
+                  </td>
+                </tr>
+              }
+              @if (!data()?.estudiantesRiesgo?.length) {
+                <tr>
+                  <td colspan="3" class="px-4 py-8 text-center text-slate-400">
+                    No hay estudiantes en riesgo. ¡Excelente asistencia!
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Feed Reciente -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-500">history</span>
+            Últimos Registros
+          </h3>
+        </div>
+        
+        <div class="space-y-4 flex-1">
+          @for (registro of data()?.ultimosRegistros; track registro.horaRegistro) {
+            <div class="flex items-center gap-4 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                   [ngClass]="{'bg-emerald-100 text-emerald-600': registro.estado === 'PRESENTE',
+                               'bg-amber-100 text-amber-600': registro.estado === 'TARDANZA',
+                               'bg-rose-100 text-rose-600': registro.estado === 'AUSENTE'}">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">
+                  {{ registro.estado === 'PRESENTE' ? 'how_to_reg' : (registro.estado === 'TARDANZA' ? 'schedule' : 'person_off') }}
+                </span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate" [title]="registro.estudianteNombre">{{ registro.estudianteNombre }}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate" [title]="registro.cursoNombre">{{ registro.cursoNombre }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-medium text-slate-800 dark:text-slate-300">{{ registro.horaRegistro | date:'shortTime' }}</p>
+                <p class="text-[10px] font-bold tracking-wide uppercase"
+                   [ngClass]="{'text-emerald-600': registro.estado === 'PRESENTE',
+                               'text-amber-600': registro.estado === 'TARDANZA',
+                               'text-rose-600': registro.estado === 'AUSENTE'}">
+                  {{ registro.estado }}
+                </p>
+              </div>
+            </div>
+          }
+          @if (!data()?.ultimosRegistros?.length) {
+            <div class="py-8 text-center text-slate-400">
+              No hay registros de asistencia recientes hoy.
+            </div>
+          }
         </div>
       </div>
     </div>

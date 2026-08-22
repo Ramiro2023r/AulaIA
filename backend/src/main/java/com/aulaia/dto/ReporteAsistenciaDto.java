@@ -9,6 +9,8 @@ import java.time.LocalDate;
 @Builder
 public class ReporteAsistenciaDto {
     private LocalDate fecha;
+    private Long asistenciaId;
+    private Long estudianteId;
     private String estudianteNombreCompleto;
     private String cursoNombre;
     private String seccionNombre;

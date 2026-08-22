@@ -9,9 +9,7 @@ export type UserRole = 'ADMIN' | 'DOCENTE';
 
 export interface AuthUser {
   id: number;
-  nombre: string;
-  apellido: string;
-  usuario: string;
+  username: string;
   rol: UserRole;
 }
 

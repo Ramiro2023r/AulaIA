@@ -61,11 +61,33 @@
 
       <ng-container *ngIf="isEdit()">
         <div class="col-span-full border-t border-outline-variant pt-4 mt-2">
-          <div class="p-3 bg-surface-container-light rounded-lg border border-outline-variant flex items-start gap-3">
-            <span class="material-symbols-rounded text-primary mt-0.5">lock</span>
-            <div class="text-sm text-on-surface-variant">
-              <p class="font-medium text-on-surface mb-1">Gestión de Credenciales</p>
-              <p>Por políticas de seguridad, las credenciales no pueden ser modificadas ni visualizadas desde este formulario.</p>
+          <h3 class="text-sm font-semibold text-on-surface mb-4">Gestión de Credenciales</h3>
+          
+          <div class="p-4 bg-surface-container-light rounded-lg border border-outline-variant">
+            <div class="flex items-start gap-3 mb-4">
+              <span class="material-symbols-rounded text-primary mt-0.5">lock_reset</span>
+              <div class="text-sm text-on-surface-variant flex-1">
+                <p class="font-medium text-on-surface mb-1">Restablecer Contraseña</p>
+                <p>El nombre de usuario (<span class="font-mono text-on-surface bg-surface-container px-1 rounded">{{form.get('username')?.value}}</span>) no se puede cambiar. Si el docente olvidó su contraseña, puedes establecer una nueva aquí.</p>
+              </div>
+            </div>
+
+            <div *ngIf="!showResetPassword()" class="ml-9">
+              <button type="button" class="btn btn-secondary text-sm" (click)="toggleResetPassword()">
+                Cambiar Contraseña
+              </button>
+            </div>
+
+            <div *ngIf="showResetPassword()" class="ml-9 space-y-3">
+              <input type="password" [formControl]="newPasswordCtrl" class="input-text w-full md:w-64" placeholder="Nueva contraseña (mín 6 carácteres)">
+              <div class="flex gap-2">
+                <button type="button" class="btn btn-primary text-sm" (click)="restablecerPassword()" [disabled]="newPasswordCtrl.invalid || loadingReset()">
+                  {{ loadingReset() ? 'Guardando...' : 'Confirmar Cambio' }}
+                </button>
+                <button type="button" class="btn btn-text text-sm" (click)="toggleResetPassword()">
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>

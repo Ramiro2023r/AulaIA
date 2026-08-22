@@ -33,11 +33,12 @@ export class EstudianteService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/estudiantes`;
 
-  listar(filtros?: { codigo?: string; nombre?: string; seccion?: number; activo?: boolean }): Observable<EstudianteResponse[]> {
+  listar(filtros?: { codigo?: string; nombre?: string; buscar?: string; seccion?: number; activo?: boolean }): Observable<EstudianteResponse[]> {
     let params = new HttpParams();
     if (filtros) {
       if (filtros.codigo) params = params.set('codigo', filtros.codigo);
       if (filtros.nombre) params = params.set('nombre', filtros.nombre);
+      if (filtros.buscar) params = params.set('buscar', filtros.buscar);
       if (filtros.seccion) params = params.set('seccion', filtros.seccion);
       if (filtros.activo !== undefined) params = params.set('activo', filtros.activo);
     }

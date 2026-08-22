@@ -1,0 +1,123 @@
+<app-page-header title="AulaIA IA">
+  <div class="flex items-center gap-2">
+    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+          [ngClass]="iaDisponible() === true ? 'bg-success/20 text-success' : 
+                       iaDisponible() === false ? 'bg-error/20 text-error' : 'bg-warning/20 text-warning'">
+      <span class="material-symbols-rounded mr-1">smart_toy</span>
+      {{ iaDisponible() === true ? 'IA Disponible' : iaDisponible() === false ? 'IA No Disponible' : 'Verificando...' }}
+    </span>
+  </div>
+</app-page-header>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+  <!-- Panel principal: Chat/Consulta -->
+  <div class="lg:col-span-2 bg-surface rounded-xl shadow-sm border border-outline-variant p-6">
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-on-surface-variant mb-2">
+        Pregunta sobre la asistencia de tus clases
+      </label>
+      <div class="flex gap-2">
+        <app-input
+          [placeholder]="'Ej: ¿Cómo estuvo la asistencia de 6º A esta semana?'"
+          [(ngModel)]="pregunta"
+          (keydown.enter)="enviarConsulta()"
+          [disabled]="loading()"
+        ></app-input>
+        <button class="btn btn-primary px-6" (click)="enviarConsulta()" [disabled]="loading() || !pregunta().trim()">
+          <span *ngIf="loading()" class="material-symbols-rounded animate-spin mr-2">sync</span>
+          <span *ngIf="!loading()" class="material-symbols-rounded mr-2">send</span>
+          {{ loading() ? 'Consultando...' : 'Consultar' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Preguntas rápidas -->
+    <div class="mb-6">
+      <p class="text-sm font-medium text-on-surface-variant mb-3">Preguntas rápidas:</p>
+      <div class="flex flex-wrap gap-2">
+        @for (p of preguntasRapidas; track p) {
+          <button class="btn btn-text text-sm px-3 py-1.5" (click)="usarPreguntaRapida(p)" [disabled]="loading()">
+            {{ p }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Respuesta -->
+    <div *ngIf="hayRespuesta()" class="bg-surface-container rounded-lg p-4 border border-outline-variant min-h-[200px]">
+      @if (loading()) {
+        <div class="flex items-center justify-center h-40">
+          <app-skeleton class="w-3/4 h-8"></app-skeleton>
+          <app-skeleton class="w-1/2 h-8 mt-4"></app-skeleton>
+          <app-skeleton class="w-2/3 h-8 mt-4"></app-skeleton>
+        </div>
+      } @else {
+        <div class="prose prose-sm max-w-none text-on-surface whitespace-pre-wrap">
+          {{ respuesta()?.respuesta }}
+        </div>
+        
+        @if (!esExitoso()) {
+          <div class="mt-4 p-3 bg-error/10 border border-error/30 rounded-lg text-error text-sm">
+            <span class="material-symbols-rounded mr-1">warning</span>
+            El servicio de IA no está disponible temporalmente. Los datos mostrados pueden ser limitados.
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="!hayRespuesta() && !loading()" class="text-center py-12 text-on-surface-variant">
+      <span class="material-symbols-rounded text-6xl mb-4 block">psychology</span>
+      <h3 class="text-lg font-medium mb-2">Asistente Inteligente AulaIA</h3>
+      <p class="mb-4">Escribe una pregunta sobre la asistencia de tus clases o usa una de las preguntas rápidas.</p>
+      <p class="text-sm">Ejemplos: "¿Quiénes faltaron hoy?", "Resumen de la semana", "Tendencia de tardanzas"</p>
+    </div>
+  </div>
+
+  <!-- Panel lateral: Resumen rápido -->
+  <div class="lg:col-span-1">
+    <div class="bg-surface rounded-xl shadow-sm border border-outline-variant p-6 h-fit sticky top-24">
+      <h3 class="text-lg font-medium text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-rounded text-primary">analytics</span>
+        Resumen Rápido
+      </h3>
+      
+      <button class="btn btn-secondary w-full mb-4" (click)="obtenerResumen()" [disabled]="loading()">
+        <span class="material-symbols-rounded mr-2">summarize</span>
+        Generar resumen de mis clases
+      </button>
+
+      <div *ngIf="respuesta()?.datosAnalisis?.resumen_general as resumen" class="space-y-4">
+        <div class="bg-primary/10 rounded-lg p-4 border border-primary/20">
+          <div class="text-sm text-on-surface-variant">Asistencia Global</div>
+          <div class="text-3xl font-bold text-primary">{{ resumen.porcentaje_asistencia_global }}%</div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <div class="bg-success/10 p-3 rounded border border-success/20">
+            <div class="text-on-surface-variant">Estudiantes</div>
+            <div class="font-bold text-success">{{ resumen.total_estudiantes }}</div>
+          </div>
+          <div class="bg-warning/10 p-3 rounded border border-warning/20">
+            <div class="text-on-surface-variant">Tendencia</div>
+            <div class="font-bold text-warning capitalize">{{ resumen.tendencia_global?.toLowerCase() }}</div>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-outline-variant">
+          <p class="text-sm text-on-surface-variant mb-2">Totales:</p>
+          <div class="grid grid-cols-3 gap-1 text-xs">
+            <span class="text-success">Presentes: {{ resumen.total_presentes }}</span>
+            <span class="text-warning">Tardanzas: {{ resumen.total_tardanzas }}</span>
+            <span class="text-error">Ausentes: {{ resumen.total_ausentes }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!respuesta()?.datosAnalisis?.resumen_general && !loading()" class="text-center py-8 text-on-surface-variant">
+        <span class="material-symbols-rounded text-4xl mb-2 block">info</span>
+        <p>Presiona "Generar resumen" para ver estadísticas</p>
+      </div>
+    </div>
+  </div>
+</div>

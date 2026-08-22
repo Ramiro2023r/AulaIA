@@ -9,6 +9,8 @@ import com.aulaia.entity.Usuario;
 import com.aulaia.exception.ConflictException;
 import com.aulaia.exception.ResourceNotFoundException;
 import com.aulaia.mapper.DocenteMapper;
+import com.aulaia.dto.docente.DocenteProfileResponse;
+import com.aulaia.dto.docente.DocenteProfileUpdateRequest;
 import com.aulaia.repository.DocenteRepository;
 import com.aulaia.repository.UsuarioRepository;
 import org.slf4j.Logger;
@@ -136,14 +138,44 @@ public class DocenteService {
     @Transactional
     public DocenteResponse desactivar(Long id) {
         Docente docente = findOrThrow(id);
-        Usuario usuario = docente.getUsuario();
-        docente.setActivo(false);
-        usuario.setActivo(false);
-
-        guardarDocente(docente);
-        usuarioRepository.save(usuario);
-        log.info("Docente desactivado: id={}", docente.getId());
+        if (docente.isActivo()) {
+            docente.setActivo(false);
+            docente.getUsuario().setActivo(false);
+            guardarUsuario(docente.getUsuario());
+            docente = docenteRepository.save(docente);
+            log.info("Docente desactivado: id={}", id);
+        }
         return docenteMapper.toResponse(docente);
+    }
+
+    @Transactional
+    public void restablecerPassword(Long id, String nuevaPassword) {
+        Docente docente = findOrThrow(id);
+        Usuario usuario = docente.getUsuario();
+        usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword));
+        guardarUsuario(usuario);
+        log.info("Contraseña restablecida para el docente: id={}, username={}", id, usuario.getUsername());
+    }
+
+    @Transactional(readOnly = true)
+    public DocenteProfileResponse obtenerPerfilDocente(String username) {
+        Docente docente = docenteRepository.findByUsuarioUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado para el usuario: " + username, CODE_NOT_FOUND));
+        return docenteMapper.toProfileResponse(docente);
+    }
+
+    @Transactional
+    public DocenteProfileResponse actualizarPerfilDocente(String username, DocenteProfileUpdateRequest request) {
+        Docente docente = docenteRepository.findByUsuarioUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Docente no encontrado para el usuario: " + username, CODE_NOT_FOUND));
+
+        docente.setCorreoAlternativo(request.correoAlternativo());
+        docente.setTelefono(request.telefono());
+        docente.setBiografia(request.biografia());
+
+        Docente guardado = guardarDocente(docente);
+        log.info("Perfil actualizado para el docente: username={}", username);
+        return docenteMapper.toProfileResponse(guardado);
     }
 
     private Docente findOrThrow(Long id) {

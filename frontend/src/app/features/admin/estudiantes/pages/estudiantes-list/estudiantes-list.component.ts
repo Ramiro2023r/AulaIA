@@ -1,7 +1,8 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { PageHeaderComponent } from '../../../../../shared/components/ui/page-header/page-header.component';
 import { EstudianteService, EstudianteResponse } from '../../../../../core/services/estudiante.service';
 import { SeccionService, SeccionResponse } from '../../../../../core/services/seccion.service';
@@ -13,11 +14,15 @@ import { ToastService } from '../../../../../shared/services/toast.service';
   imports: [CommonModule, FormsModule, RouterModule, PageHeaderComponent],
   templateUrl: './estudiantes-list.component.html',
 })
-export class EstudiantesListComponent implements OnInit {
+export class EstudiantesListComponent implements OnInit, OnDestroy {
   private estudianteService = inject(EstudianteService);
   private seccionService = inject(SeccionService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private destroy$ = new Subject<void>();
+
+  // Subject para debounce del campo de búsqueda
+  private searchSubject = new Subject<string>();
 
   estudiantes = signal<EstudianteResponse[]>([]);
   secciones = signal<SeccionResponse[]>([]);
@@ -30,6 +35,20 @@ export class EstudiantesListComponent implements OnInit {
   ngOnInit(): void {
     this.cargarSecciones();
     this.cargarEstudiantes();
+
+    // Escuchar cambios en el campo de búsqueda con debounce de 350ms
+    this.searchSubject.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.cargarEstudiantes();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarSecciones(): void {
@@ -41,11 +60,12 @@ export class EstudiantesListComponent implements OnInit {
 
   cargarEstudiantes(): void {
     this.loading.set(true);
-    const query = this.filterQuery();
+    const query = this.filterQuery().trim();
     const sec = this.filterSeccion();
 
     this.estudianteService.listar({
-      nombre: query || undefined,
+      // 'buscar' hace OR parcial sobre código, nombres y apellidos (case-insensitive)
+      buscar: query || undefined,
       seccion: sec ? Number(sec) : undefined
     }).subscribe({
       next: (data) => {
@@ -57,6 +77,17 @@ export class EstudiantesListComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  /** Llamado por (ngModelChange) del input de búsqueda para filtrar mientras escribe */
+  onSearchChange(value: string): void {
+    this.filterQuery.set(value);
+    this.searchSubject.next(value);
+  }
+
+  /** Llamado al cambiar el filtro de sección (filtro inmediato) */
+  onSeccionChange(): void {
+    this.cargarEstudiantes();
   }
 
   aplicarFiltros(): void {

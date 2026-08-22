@@ -1,12 +1,178 @@
-<app-page-header 
-  title="Panel de Administración" 
-  description="Bienvenido al panel central de AulaIA.">
-</app-page-header>
+<app-page-header title="Panel de Administración"></app-page-header>
 
-<div class="mt-8 bg-surface p-6 rounded-lg shadow-sm border border-outline-variant">
-  <h2 class="text-xl font-medium text-on-surface mb-2">Resumen General</h2>
-  <p class="text-on-surface-variant">
-    Desde este panel podrás gestionar estudiantes, docentes, cursos, secciones y revisar reportes globales de asistencia.
-    Utiliza el menú lateral para navegar por las diferentes opciones administrativas.
-  </p>
+<div class="space-y-6 mt-6 animate-fade-in">
+  
+  <!-- Skeletons while loading -->
+  <div *ngIf="isLoading()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <app-skeleton class="h-32 w-full"></app-skeleton>
+    <app-skeleton class="h-32 w-full"></app-skeleton>
+    <app-skeleton class="h-32 w-full"></app-skeleton>
+    <app-skeleton class="h-32 w-full"></app-skeleton>
+  </div>
+
+  <div *ngIf="!isLoading() && metrics()" class="space-y-6">
+    
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      
+      <!-- Total Estudiantes -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-2xl">school</span>
+        </div>
+        <div>
+          <p class="text-sm text-on-surface-variant font-medium">Estudiantes</p>
+          <p class="text-2xl font-bold text-on-surface">{{ metrics()!.totalEstudiantes }}</p>
+        </div>
+      </div>
+
+      <!-- Total Docentes -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+          <span class="material-symbols-outlined text-2xl">person_4</span>
+        </div>
+        <div>
+          <p class="text-sm text-on-surface-variant font-medium">Docentes Activos</p>
+          <p class="text-2xl font-bold text-on-surface">{{ metrics()!.totalDocentes }}</p>
+        </div>
+      </div>
+
+      <!-- Total Secciones -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
+          <span class="material-symbols-outlined text-2xl">grid_view</span>
+        </div>
+        <div>
+          <p class="text-sm text-on-surface-variant font-medium">Secciones</p>
+          <p class="text-2xl font-bold text-on-surface">{{ metrics()!.totalSecciones }}</p>
+        </div>
+      </div>
+
+      <!-- Asistencia Hoy -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1">
+        <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center text-success">
+          <span class="material-symbols-outlined text-2xl">check_circle</span>
+        </div>
+        <div>
+          <p class="text-sm text-on-surface-variant font-medium">Asistencia Hoy</p>
+          <p class="text-2xl font-bold text-on-surface">{{ metrics()!.asistenciaHoyPorcentaje }}%</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Doughnut Chart (Asistencia Hoy) -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm">
+        <h3 class="text-lg font-headline-sm text-on-surface mb-4">Estado de Asistencia (Hoy)</h3>
+        <div class="relative h-64">
+          <canvas *ngIf="doughnutChartData().datasets.length > 0" baseChart
+            [data]="doughnutChartData()"
+            [options]="doughnutChartOptions"
+            [type]="doughnutChartType">
+          </canvas>
+          <div *ngIf="doughnutChartData().datasets[0].data.length === 0" class="absolute inset-0 flex items-center justify-center text-on-surface-variant text-sm">
+            No hay datos registrados hoy
+          </div>
+        </div>
+      </div>
+
+      <!-- Bar Chart (Tendencia 7 Dias) -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm lg:col-span-2">
+        <h3 class="text-lg font-headline-sm text-on-surface mb-4">Tendencia de Asistencia (Últimos 7 días)</h3>
+        <div class="relative h-64">
+          <canvas *ngIf="barChartData().datasets[0].data.length > 0" baseChart
+            [data]="barChartData()"
+            [options]="barChartOptions"
+            [type]="barChartType">
+          </canvas>
+          <div *ngIf="barChartData().datasets[0].data.length === 0" class="absolute inset-0 flex items-center justify-center text-on-surface-variant text-sm">
+            No hay datos en los últimos 7 días
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Justificaciones Pendientes -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-0 shadow-sm overflow-hidden lg:col-span-2 flex flex-col">
+        <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+          <h3 class="text-lg font-headline-sm text-on-surface">Justificaciones Pendientes</h3>
+          <a routerLink="/admin/justificaciones" class="text-sm font-medium text-primary hover:underline">Ver todas</a>
+        </div>
+        
+        <div class="overflow-x-auto flex-1">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-surface-container-low border-b border-outline-variant">
+                <th class="px-6 py-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Fecha</th>
+                <th class="px-6 py-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Estudiante</th>
+                <th class="px-6 py-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Motivo</th>
+                <th class="px-6 py-3 text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+              <tr *ngFor="let item of metrics()!.justificacionesPendientes" class="hover:bg-surface-container-lowest transition-colors">
+                <td class="px-6 py-4 text-sm text-on-surface">{{ item.fechaRegistro | date:'dd/MM/yyyy' }}</td>
+                <td class="px-6 py-4 text-sm font-medium text-on-surface">
+                  {{ item.asistencia.estudiante.apellidos }}, {{ item.asistencia.estudiante.nombres }}
+                </td>
+                <td class="px-6 py-4 text-sm text-on-surface-variant truncate max-w-[200px]" [title]="item.motivo">
+                  {{ item.motivo }}
+                </td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex px-2 py-1 text-xs font-medium rounded-md" [ngClass]="getJustificacionBadgeClass(item.estado)">
+                    {{ item.estado }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="metrics()!.justificacionesPendientes.length === 0">
+                <td colspan="4" class="px-6 py-8 text-center text-sm text-on-surface-variant">
+                  No hay justificaciones pendientes de revisión.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm">
+        <h3 class="text-lg font-headline-sm text-on-surface mb-4">Accesos Rápidos</h3>
+        <div class="space-y-3">
+          <a routerLink="/admin/estudiantes/nuevo" class="flex items-center gap-3 p-3 rounded-lg border border-outline-variant hover:bg-surface-container-low transition-colors no-underline">
+            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined text-sm">person_add</span>
+            </div>
+            <span class="text-sm font-medium text-on-surface">Registrar Estudiante</span>
+          </a>
+          <a routerLink="/admin/docentes/nuevo" class="flex items-center gap-3 p-3 rounded-lg border border-outline-variant hover:bg-surface-container-low transition-colors no-underline">
+            <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+              <span class="material-symbols-outlined text-sm">person_add</span>
+            </div>
+            <span class="text-sm font-medium text-on-surface">Registrar Docente</span>
+          </a>
+          <a routerLink="/admin/reportes" class="flex items-center gap-3 p-3 rounded-lg border border-outline-variant hover:bg-surface-container-low transition-colors no-underline">
+            <div class="w-8 h-8 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
+              <span class="material-symbols-outlined text-sm">analytics</span>
+            </div>
+            <span class="text-sm font-medium text-on-surface">Ver Reportes Generales</span>
+          </a>
+          <a routerLink="/admin/asistencias" class="flex items-center gap-3 p-3 rounded-lg border border-outline-variant hover:bg-surface-container-low transition-colors no-underline">
+            <div class="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success">
+              <span class="material-symbols-outlined text-sm">fact_check</span>
+            </div>
+            <span class="text-sm font-medium text-on-surface">Revisar Asistencias</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>

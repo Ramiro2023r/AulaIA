@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { PageHeaderComponent } from '../../../../../shared/components/ui/page-header/page-header.component';
 import { DocenteService } from '../../../../../core/services/docente.service';
@@ -23,6 +23,10 @@ export class DocenteFormComponent implements OnInit {
   isEdit = signal(false);
   docenteId = signal<number | null>(null);
   loading = signal(false);
+
+  showResetPassword = signal(false);
+  loadingReset = signal(false);
+  newPasswordCtrl = new FormControl('', [Validators.required, Validators.minLength(6)]);
 
   ngOnInit(): void {
     this.initForm();
@@ -57,7 +61,7 @@ export class DocenteFormComponent implements OnInit {
         this.form.patchValue({
           nombres: docente.nombres,
           apellidos: docente.apellidos,
-          username: docente.username
+          username: docente.usuario.username
         });
         this.loading.set(false);
       },
@@ -107,5 +111,28 @@ export class DocenteFormComponent implements OnInit {
     this.loading.set(false);
     const msg = err.error?.message || 'Error al guardar docente';
     this.toast.show(msg, 'error');
+  }
+
+  toggleResetPassword(): void {
+    this.showResetPassword.set(!this.showResetPassword());
+    this.newPasswordCtrl.reset();
+  }
+
+  restablecerPassword(): void {
+    if (this.newPasswordCtrl.invalid || !this.docenteId()) return;
+
+    this.loadingReset.set(true);
+    this.docenteService.restablecerPassword(this.docenteId()!, this.newPasswordCtrl.value!).subscribe({
+      next: () => {
+        this.loadingReset.set(false);
+        this.toggleResetPassword();
+        this.toast.show('Contraseña restablecida con éxito', 'success');
+      },
+      error: (err) => {
+        this.loadingReset.set(false);
+        const msg = err.error?.message || 'Error al restablecer la contraseña';
+        this.toast.show(msg, 'error');
+      }
+    });
   }
 }

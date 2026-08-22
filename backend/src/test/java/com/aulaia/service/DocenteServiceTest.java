@@ -212,6 +212,7 @@ class DocenteServiceTest {
         Usuario usuario = usuario(1L, "d.profesor", true);
         Docente docente = docente(10L, usuario, "Docente", "De Prueba", true);
         when(docenteRepository.findById(10L)).thenReturn(Optional.of(docente));
+        when(docenteRepository.save(any(Docente.class))).thenAnswer(inv -> inv.getArgument(0));
         when(docenteRepository.saveAndFlush(any(Docente.class))).thenAnswer(inv -> inv.getArgument(0));
 
         DocenteResponse response = docenteService.desactivar(10L);
@@ -220,7 +221,7 @@ class DocenteServiceTest {
         assertThat(usuario.isActivo()).isFalse();
         assertThat(response.activo()).isFalse();
         assertThat(response.usuario().activo()).isFalse();
-        verify(usuarioRepository).save(usuario);
+        verify(usuarioRepository).saveAndFlush(usuario);
     }
 
     @Test

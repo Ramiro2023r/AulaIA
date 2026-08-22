@@ -1,45 +1,104 @@
 # ============================================
-# AulaIA — Docker Compose (BASE / PLACEHOLDER)
+# AulaIA — Docker Compose (Producción / Desarrollo)
 # ============================================
+# Levanta: PostgreSQL + Spring Boot + FastAPI + Angular (Nginx)
 #
-# ESTADO ACTUAL: Sprint 0 — Preparación del proyecto.
+# Uso:
+#   docker compose up -d --build
 #
-# Este archivo es únicamente un placeholder documentado.
-# Los servicios Docker completos se implementarán en
-# sprints posteriores (Sprint 19 — Docker y entorno local),
-# siguiendo 08-DOCKERIZACION_AulaIA.md.
-#
-# Servicios previstos (documento de referencia):
-#
-#   postgres   — PostgreSQL 17 (persistencia con volumen)
-#   backend    — Spring Boot (Java 21), Flyway + PostgreSQL
-#   fastapi    — Servicio de IA (Python 3.12 / FastAPI)
-#   frontend   — Angular (Nginx para producción)
-#
-# Configuración final esperada:
-#
-#   services:
-#     postgres:
-#       image: postgres:17-alpine
-#     backend:
-#       build: ./backend
-#     fastapi:
-#       build: ./data-science
-#     frontend:
-#       build: ./frontend
-#
-# Variables requeridas (definidas en .env / .env.example):
-#   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD,
-#   DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD,
-#   JWT_SECRET, IA_SERVICE_URL
-#
-# Regla de red: dentro de Docker los servicios se comunican
-# por hostname de servicio (postgres, fastapi), nunca por
-# localhost. El navegador del usuario usa localhost para el
-# frontend y el backend.
-#
-# Nada que ejecutar todavía:
-#   docker compose up  ->  sin servicios definidos
+# Variables (.env):
+#   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+#   DB_HOST=postgres, DB_PORT=5432, DB_NAME, DB_USERNAME, DB_PASSWORD
+#   JWT_SECRET, JWT_EXPIRATION
+#   IA_SERVICE_URL=http://fastapi:8000
+#   PORT=8080, SPRING_PROFILES_ACTIVE=dev
 # ============================================
 
-services: {}
+services:
+  # ─── PostgreSQL 17 ──────────────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    container_name: aulaia-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - aulaia_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aulaia-network
+
+  # ─── FastAPI (Servicio IA) ──────────────────────────────────────────────
+  fastapi:
+    build:
+      context: ./data-science
+      dockerfile: Dockerfile
+    container_name: aulaia-fastapi
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+    environment:
+      - ENVIRONMENT=docker
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aulaia-network
+    depends_on:
+      - postgres
+
+  # ─── Spring Boot Backend ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aulaia-backend
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+      IA_SERVICE_URL: http://fastapi:8000
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      PORT: ${PORT:-8080}
+      AULAIA_BOOTSTRAP_ADMIN_ENABLED: ${AULAIA_BOOTSTRAP_ADMIN_ENABLED:-false}
+      AULAIA_BOOTSTRAP_ADMIN_USERNAME: ${AULAIA_BOOTSTRAP_ADMIN_USERNAME:-admin}
+      AULAIA_BOOTSTRAP_ADMIN_PASSWORD: ${AULAIA_BOOTSTRAP_ADMIN_PASSWORD:-}
+    networks:
+      - aulaia-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ─── Frontend Angular (Nginx) ───────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aulaia-frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    networks:
+      - aulaia-network
+    depends_on:
+      - backend
+
+volumes:
+  aulaia_postgres_data:
+
+networks:
+  aulaia-network:
+    driver: bridge

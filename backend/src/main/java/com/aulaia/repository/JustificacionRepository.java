@@ -11,4 +11,6 @@ public interface JustificacionRepository extends JpaRepository<Justificacion, Lo
     Optional<Justificacion> findByAsistenciaId(Long asistenciaId);
 
     List<Justificacion> findByAsistenciaIdIn(List<Long> asistenciaIds);
+    
+    org.springframework.data.domain.Page<Justificacion> findByEstado(com.aulaia.entity.EstadoJustificacion estado, org.springframework.data.domain.Pageable pageable);
 }
