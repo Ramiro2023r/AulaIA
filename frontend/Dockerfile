@@ -9,7 +9,9 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+# ng2-charts@6 declara @angular/cdk como peer opcional no fijado por este
+# proyecto; se conserva el lockfile actual y su instalación compatible.
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 RUN npm run build
