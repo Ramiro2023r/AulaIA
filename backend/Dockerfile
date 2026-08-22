@@ -23,6 +23,11 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
+# curl se usa únicamente para el healthcheck definido en Docker Compose.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copiar JAR del build
 COPY --from=build /app/target/*.jar app.jar
 

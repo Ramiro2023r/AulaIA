@@ -24,7 +24,7 @@ backend/.settings/
 # Data Science / FastAPI
 data-science/.venv/
 data-science/venv/
-data-science/__pycache__/
+**/__pycache__/
 data-science/.pytest_cache/
 data-science/.ruff_cache/
 

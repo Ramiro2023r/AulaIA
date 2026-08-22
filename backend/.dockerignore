@@ -1,8 +1,10 @@
-target
+target/
+.env
+.env.*
+.mvn/
 .git
 .idea
 .vscode
 *.log
-*.md
-Dockerfile
-.dockerignore
+**/*.tmp
+**/node_modules/

@@ -1,104 +1,103 @@
-# ============================================
-# AulaIA — Docker Compose (Producción / Desarrollo)
-# ============================================
-# Levanta: PostgreSQL + Spring Boot + FastAPI + Angular (Nginx)
-#
-# Uso:
-#   docker compose up -d --build
-#
-# Variables (.env):
-#   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
-#   DB_HOST=postgres, DB_PORT=5432, DB_NAME, DB_USERNAME, DB_PASSWORD
-#   JWT_SECRET, JWT_EXPIRATION
-#   IA_SERVICE_URL=http://fastapi:8000
-#   PORT=8080, SPRING_PROFILES_ACTIVE=dev
-# ============================================
+# AulaIA: entorno local reproducible con Docker Compose.
+# Copia primero .env.example a .env y reemplaza los valores CHANGE_ME.
 
 services:
-  # ─── PostgreSQL 17 ──────────────────────────────────────────────────────
   postgres:
     image: postgres:17-alpine
-    container_name: aulaia-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB debe estar definido en .env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER debe estar definido en .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD debe estar definido en .env}
     volumes:
-      - aulaia_postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
     networks:
-      - aulaia-network
+      - aulaia_network
 
-  # ─── FastAPI (Servicio IA) ──────────────────────────────────────────────
-  fastapi:
+  data-science:
     build:
       context: ./data-science
       dockerfile: Dockerfile
-    container_name: aulaia-fastapi
+    restart: unless-stopped
     ports:
-      - "${FASTAPI_PORT:-8000}:8000"
+      - "${DATA_SCIENCE_PORT:-8000}:8000"
     environment:
-      - ENVIRONMENT=docker
+      ENVIRONMENT: docker
+      PORT: 8000
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
     networks:
-      - aulaia-network
-    depends_on:
-      - postgres
+      - aulaia_network
 
-  # ─── Spring Boot Backend ────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: aulaia-backend
+    restart: unless-stopped
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: ${POSTGRES_DB}
-      DB_USERNAME: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_NAME: ${POSTGRES_DB:?POSTGRES_DB debe estar definido en .env}
+      DB_USERNAME: ${POSTGRES_USER:?POSTGRES_USER debe estar definido en .env}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD debe estar definido en .env}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET debe estar definido en .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
-      IA_SERVICE_URL: http://fastapi:8000
+      IA_SERVICE_URL: http://data-science:8000
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      PORT: ${PORT:-8080}
-      AULAIA_BOOTSTRAP_ADMIN_ENABLED: ${AULAIA_BOOTSTRAP_ADMIN_ENABLED:-false}
-      AULAIA_BOOTSTRAP_ADMIN_USERNAME: ${AULAIA_BOOTSTRAP_ADMIN_USERNAME:-admin}
-      AULAIA_BOOTSTRAP_ADMIN_PASSWORD: ${AULAIA_BOOTSTRAP_ADMIN_PASSWORD:-}
+      PORT: 8080
+      APP_DEMO_USERS_ENABLED: ${APP_DEMO_USERS_ENABLED:-true}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      TELEGRAM_ENABLED: ${TELEGRAM_ENABLED:-false}
+      TELEGRAM_POLLING_INTERVAL_MS: ${TELEGRAM_POLLING_INTERVAL_MS:-3000}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/actuator/health > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
-      - aulaia-network
+      - aulaia_network
     depends_on:
       postgres:
         condition: service_healthy
+      data-science:
+        condition: service_healthy
 
-  # ─── Frontend Angular (Nginx) ───────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: aulaia-frontend
+    restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-4200}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
     networks:
-      - aulaia-network
+      - aulaia_network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
-  aulaia_postgres_data:
+  postgres_data:
 
 networks:
-  aulaia-network:
+  aulaia_network:
     driver: bridge

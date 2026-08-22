@@ -66,7 +66,7 @@ aulaia/
 │   └── workflows/      # GitHub Actions (CI/CD)
 ├── .gitignore
 ├── README.md
-├── docker-compose.yml  # Placeholder documentado (servicios en sprint posterior)
+├── docker-compose.yml  # Entorno local: PostgreSQL, FastAPI, backend y frontend
 └── .env.example        # Variables de entorno de ejemplo
 ```
 
@@ -132,13 +132,9 @@ SPRINT 24 — Mejoras post-MVP
 
 ## Estado actual del desarrollo
 
-- [x] Sprint 0 — Estructura raíz del repositorio creada (esta tarea)
-- [ ] Frontend Angular (pendiente)
-- [ ] Backend Spring Boot (pendiente)
-- [ ] Servicio FastAPI (pendiente)
-- [ ] PostgreSQL y migraciones (pendiente)
-- [ ] Docker Compose completo (pendiente)
-- [ ] GitHub Actions (pendiente)
+El repositorio contiene los módulos Angular, Spring Boot, FastAPI, PostgreSQL
+con migraciones Flyway y el entorno local completo de Docker Compose. La
+ejecución reproducible se describe en la sección «Ejecutar con Docker».
 
 ## Requisitos mínimos
 
@@ -151,9 +147,105 @@ SPRINT 24 — Mejoras post-MVP
 | Docker | Desktop reciente + Docker Compose |
 | Git | Reciente |
 
-## Instrucciones de ejecución
+## Ejecutar con Docker
 
-**Pendiente.** El sistema aún está en preparación. Las instrucciones de instalación y ejecución se agregarán al README conforme se implementen los sprints.
+La forma recomendada de ejecutar AulaIA en otra PC es Docker Desktop. No se
+instalan localmente Java, Node, Python ni PostgreSQL: Docker Compose construye
+y conecta los cuatro servicios.
+
+### 1. Requisitos
+
+- Docker Desktop en ejecución, con Docker Compose v2.
+- Git para clonar el repositorio.
+
+Comprueba la instalación:
+
+```powershell
+docker --version
+docker compose version
+```
+
+### 2. Preparar las variables
+
+Después de clonar el proyecto, crea un archivo `.env` local que nunca se sube
+al repositorio:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+En macOS/Linux:
+
+```bash
+cp .env.example .env
+```
+
+Edita únicamente `.env` y reemplaza estos valores obligatorios:
+
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET` (valor aleatorio de al menos 32 caracteres)
+
+Las credenciales de Telegram son opcionales. Con `TELEGRAM_ENABLED=false` y
+token vacío, Telegram queda deshabilitado sin impedir el arranque. Para
+habilitarlo, completa `TELEGRAM_BOT_TOKEN` y `TELEGRAM_BOT_USERNAME` en `.env`;
+no es necesario reconstruir las imágenes si solo cambian esas variables.
+
+### 3. Construir e iniciar
+
+```powershell
+docker compose up --build
+```
+
+Para ejecutarlo en segundo plano:
+
+```powershell
+docker compose up --build -d
+```
+
+Docker Compose crea una red interna (`aulaia_network`) y un volumen persistente
+(`postgres_data`). Flyway ejecuta las migraciones al iniciar el backend. En el
+perfil `dev` también se habilitan los usuarios de demostración existentes,
+salvo que se defina `APP_DEMO_USERS_ENABLED=false`.
+
+### 4. URLs locales
+
+| Servicio | URL |
+|---|---|
+| Frontend Angular | http://localhost:4200 |
+| Backend Spring Boot | http://localhost:8080 |
+| Swagger UI | http://localhost:8080/swagger-ui/index.html |
+| FastAPI | http://localhost:8000 |
+| Documentación FastAPI | http://localhost:8000/docs |
+| Salud FastAPI | http://localhost:8000/health |
+| Salud backend | http://localhost:8080/actuator/health |
+
+PostgreSQL no publica un puerto al host: solo se accede desde la red interna de
+Docker mediante el backend. Sus datos quedan guardados en `postgres_data`.
+
+El frontend servido por Nginx consume `/api/v1` bajo su mismo origen y Nginx lo
+reenvía al servicio `backend`; por ello el navegador no depende de resolver
+nombres internos Docker. Para desarrollo sin Docker, Angular conserva su
+configuración de desarrollo hacia `http://localhost:8080/api/v1`.
+
+### Operaciones útiles
+
+```powershell
+# Ver el estado y los logs de todos los servicios
+docker compose ps
+docker compose logs -f
+
+# Ver solamente el backend
+docker compose logs -f backend
+
+# Detener sin perder la base de datos
+docker compose down
+
+# Detener y borrar también los datos PostgreSQL (acción irreversible local)
+docker compose down -v
+
+# Reconstruir tras modificar código o Dockerfiles
+docker compose up --build
+```
 
 ## Consideraciones de privacidad y demo
 
