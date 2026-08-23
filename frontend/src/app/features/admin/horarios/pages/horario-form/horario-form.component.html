@@ -32,7 +32,9 @@
         <select formControlName="seccionId" class="input-text w-full"
                 [class.border-error]="form.get('seccionId')?.invalid && form.get('seccionId')?.touched">
           <option value="" disabled>Selecciona una sección</option>
-          <option *ngFor="let seccion of secciones()" [value]="seccion.id">{{ seccion.nombre }}</option>
+          <option *ngFor="let seccion of secciones()" [value]="seccion.id">
+            {{ seccion.grado.nombre }} — Sección {{ seccion.nombre }}
+          </option>
         </select>
         <div *ngIf="form.get('seccionId')?.invalid && form.get('seccionId')?.touched" class="text-error text-xs mt-1">
           Requerido.

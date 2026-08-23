@@ -14,10 +14,10 @@
       <input type="text" class="input-text w-full" placeholder="Nombre, apellido o código..." [ngModel]="filterQuery()" (ngModelChange)="onSearchChange($event)">
     </div>
     <div class="w-full md:w-64">
-      <label class="block text-sm font-medium text-on-surface-variant mb-1">Sección</label>
+      <label class="block text-sm font-medium text-on-surface-variant mb-1">Grado / Sección</label>
       <select class="input-text w-full" [ngModel]="filterSeccion()" (ngModelChange)="filterSeccion.set($event); onSeccionChange()">
         <option [value]="null">Todas</option>
-        <option *ngFor="let sec of secciones()" [value]="sec.id">{{ sec.grado.nombre }} - {{ sec.nombre }}</option>
+        <option *ngFor="let sec of secciones()" [value]="sec.id">{{ sec.grado.nombre }} — Sección {{ sec.nombre }}</option>
       </select>
     </div>
     <div class="flex items-end gap-2">
@@ -33,7 +33,7 @@
         <tr class="border-b border-outline-variant text-on-surface-variant text-sm bg-surface-container-light">
           <th class="p-3 font-medium">Código</th>
           <th class="p-3 font-medium">Estudiante</th>
-          <th class="p-3 font-medium">Sección</th>
+          <th class="p-3 font-medium">Grado / Sección</th>
           <th class="p-3 font-medium">Estado</th>
           <th class="p-3 font-medium text-right">Acciones</th>
         </tr>
@@ -50,7 +50,7 @@
           <td class="p-3">
             <div class="font-medium text-on-surface">{{ est.apellidos }}, {{ est.nombres }}</div>
           </td>
-          <td class="p-3 text-on-surface text-sm">{{ est.seccion.nombre }}</td>
+          <td class="p-3 text-on-surface text-sm">{{ etiquetaSeccion(est) }}</td>
           <td class="p-3">
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" 
                   [ngClass]="est.activo ? 'bg-success/20 text-success' : 'bg-error/20 text-error'">

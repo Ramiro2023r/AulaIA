@@ -61,8 +61,18 @@ export class AuthService {
 
   // ─── Logout ──────────────────────────────────────────────────────────────
   logout(): void {
-    this.clear();
+    this.clearSession();
     this.router.navigate(['/login']);
+  }
+
+  /** Elimina por completo la sesión local sin forzar navegación. */
+  clearSession(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
+    this._token.set(null);
+    this._currentUser.set(null);
   }
 
   // ─── Token helpers ───────────────────────────────────────────────────────
@@ -76,13 +86,6 @@ export class AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     this._token.set(token);
     this._currentUser.set(user);
-  }
-
-  private clear(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    this._token.set(null);
-    this._currentUser.set(null);
   }
 
   private loadToken(): string | null {

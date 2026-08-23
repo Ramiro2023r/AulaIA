@@ -166,10 +166,15 @@ export class ModoAulaComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.scanResultState.set('error');
-        const msg = err?.error?.message || 'Error al registrar asistencia';
+        const errorCode = err?.error?.code;
+        const msg = errorCode === 'STUDENT_NOT_IN_SECTION'
+          ? 'Este estudiante no pertenece a la sección de esta clase.'
+          : err?.error?.message || 'Error al registrar asistencia';
         this.errorMessage.set(msg);
         
-        if (err.status === 409) {
+        if (errorCode === 'STUDENT_NOT_IN_SECTION') {
+          this.voiceService.speak('Este estudiante no pertenece a la sección de esta clase.');
+        } else if (err.status === 409) {
           this.voiceService.speak('Este código ya ha sido registrado.');
         } else if (err.status === 404) {
           this.voiceService.speak('Código no válido o estudiante no encontrado.');

@@ -95,13 +95,85 @@
       </section>
 
       <section class="bg-surface rounded-xl shadow-sm border border-outline-variant p-6">
-        <h2 class="text-xl font-medium text-on-surface">Agregar apoderado</h2>
-        <p class="text-on-surface-variant mt-1 mb-5">El apoderado quedará asociado a {{ est.nombres }} {{ est.apellidos }}.</p>
+        <h2 class="text-xl font-medium text-on-surface">Gestionar apoderados</h2>
+        <p class="text-on-surface-variant mt-1 mb-5">Asocia un apoderado ya registrado o crea uno nuevo para {{ est.nombres }} {{ est.apellidos }}.</p>
 
         <div *ngIf="apoderadoError()" class="mb-4 rounded-lg border border-error/20 bg-error/10 p-3 text-sm text-error">{{ apoderadoError() }}</div>
         <div *ngIf="apoderadoExito()" class="mb-4 rounded-lg border border-success/20 bg-success/10 p-3 text-sm text-success">{{ apoderadoExito() }}</div>
 
-        <form class="grid grid-cols-1 md:grid-cols-2 gap-4" (ngSubmit)="guardarApoderado()">
+        <div *ngIf="modoGestionApoderado() === null" class="flex flex-wrap gap-3">
+          <button type="button" class="btn btn-secondary flex items-center gap-2" (click)="abrirBusquedaApoderado()">
+            <span class="material-symbols-rounded text-[1.25rem]">person_search</span>
+            Asociar apoderado existente
+          </button>
+          <button type="button" class="btn btn-primary flex items-center gap-2" (click)="abrirRegistroApoderado()">
+            <span class="material-symbols-rounded text-[1.25rem]">person_add</span>
+            Registrar nuevo apoderado
+          </button>
+        </div>
+
+        <div *ngIf="modoGestionApoderado() === 'existente'" class="space-y-5">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h3 class="font-medium text-on-surface">Asociar apoderado existente</h3>
+              <p class="mt-1 text-sm text-on-surface-variant">Busca por nombres, apellidos o teléfono. Solo se muestran apoderados activos que aún no pertenecen a este estudiante.</p>
+            </div>
+            <button type="button" class="text-sm text-primary hover:underline" (click)="cerrarGestionApoderado()">Cancelar</button>
+          </div>
+
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <input [ngModel]="busquedaApoderado()" (ngModelChange)="busquedaApoderado.set($event)" name="buscarApoderadoExistente"
+                   (keyup.enter)="buscarApoderadosExistentes()" maxlength="120"
+                   placeholder="Nombre, apellido o teléfono"
+                   class="min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-on-surface" />
+            <button type="button" class="btn btn-secondary" (click)="buscarApoderadosExistentes()" [disabled]="isSearchingApoderados()">
+              {{ isSearchingApoderados() ? 'Buscando...' : 'Buscar' }}
+            </button>
+          </div>
+
+          <p *ngIf="!isSearchingApoderados() && apoderadosDisponibles().length === 0" class="rounded-lg bg-surface-container p-3 text-sm text-on-surface-variant">
+            Busca un apoderado para asociarlo. Si no existe, registra uno nuevo.
+          </p>
+
+          <div *ngIf="apoderadosDisponibles().length" class="space-y-2">
+            <button type="button" *ngFor="let apoderado of apoderadosDisponibles()" (click)="seleccionarApoderadoExistente(apoderado.id)"
+                    class="w-full rounded-lg border p-4 text-left transition-colors"
+                    [ngClass]="apoderadoExistenteSeleccionadoId() === apoderado.id ? 'border-primary bg-primary/5' : 'border-outline-variant hover:border-primary/50'">
+              <span class="block font-medium text-on-surface">{{ apoderado.nombres }} {{ apoderado.apellidos }}</span>
+              <span class="mt-1 block text-sm text-on-surface-variant">{{ apoderado.telefono || 'Sin teléfono registrado' }}</span>
+            </button>
+          </div>
+
+          <div *ngIf="apoderadoExistenteSeleccionadoId() !== null" class="grid grid-cols-1 gap-4 border-t border-outline-variant pt-5 md:grid-cols-2">
+            <label class="block">
+              <span class="block text-sm font-medium text-on-surface mb-1">Parentesco *</span>
+              <select name="parentescoApoderadoExistente" [(ngModel)]="relacionApoderadoExistente.parentesco" class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-on-surface">
+                <option value="MADRE">Madre</option>
+                <option value="PADRE">Padre</option>
+                <option value="TUTOR">Tutor(a)</option>
+                <option value="OTRO">Otro</option>
+              </select>
+            </label>
+            <label class="flex items-end gap-2 pb-2 text-sm text-on-surface cursor-pointer">
+              <input name="principalApoderadoExistente" [(ngModel)]="relacionApoderadoExistente.principal" type="checkbox" class="h-4 w-4 accent-primary" />
+              Marcar como apoderado principal
+            </label>
+            <div class="md:col-span-2 flex justify-end">
+              <button type="button" class="btn btn-primary" (click)="asociarApoderadoExistente()" [disabled]="isAssociatingApoderado()">
+                {{ isAssociatingApoderado() ? 'Asociando...' : 'Asociar al estudiante' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <form *ngIf="modoGestionApoderado() === 'nuevo'" class="grid grid-cols-1 md:grid-cols-2 gap-4" (ngSubmit)="guardarApoderado()">
+          <div class="md:col-span-2 flex items-start justify-between gap-4">
+            <div>
+              <h3 class="font-medium text-on-surface">Registrar nuevo apoderado</h3>
+              <p class="mt-1 text-sm text-on-surface-variant">Úsalo solo si el apoderado aún no está registrado en AulaIA.</p>
+            </div>
+            <button type="button" class="text-sm text-primary hover:underline" (click)="cerrarGestionApoderado()">Cancelar</button>
+          </div>
           <label class="block">
             <span class="block text-sm font-medium text-on-surface mb-1">Nombres *</span>
             <input name="nombresApoderado" [(ngModel)]="nuevoApoderado.nombres" maxlength="120" required class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-on-surface" />
@@ -190,7 +262,7 @@
                     (change)="seleccionarApoderado($event)">
               <option value="">Selecciona un apoderado</option>
               <option *ngFor="let apoderado of apoderadosTelegram()" [value]="apoderado.id" [disabled]="!apoderado.activo">
-                {{ apoderado.nombres }} {{ apoderado.apellidos }} - {{ apoderado.parentesco }}{{ apoderado.principal ? ' (Principal)' : '' }}{{ !apoderado.activo ? ' (Inactivo)' : '' }}
+                {{ apoderado.nombres }} {{ apoderado.apellidos }} - {{ apoderado.parentesco }}{{ apoderado.principal ? ' (Principal)' : '' }}{{ apoderado.telegramVinculado ? ' (Telegram vinculado)' : '' }}{{ !apoderado.activo ? ' (Inactivo)' : '' }}
               </option>
             </select>
             <button class="btn btn-primary flex mx-auto items-center gap-2" (click)="generarQrTelegram()"
@@ -225,6 +297,11 @@
               {{ isGeneratingTelegramQr() ? 'Regenerando...' : 'Regenerar QR' }}
             </button>
           </div>
+        </div>
+
+        <div *ngIf="telegramStatus() === 'VINCULADO'" class="mx-auto max-w-md rounded-xl border border-success/20 bg-success/10 p-4 text-success">
+          <p class="font-medium">Estado: Telegram vinculado</p>
+          <p class="mt-1 text-sm">El apoderado seleccionado ya recibirá las notificaciones de asistencia de este estudiante. No necesitas generar otro QR.</p>
         </div>
       </div>
     </div>

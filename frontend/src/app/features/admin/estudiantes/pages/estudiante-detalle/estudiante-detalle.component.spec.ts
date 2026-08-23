@@ -11,7 +11,8 @@ describe('EstudianteDetalleComponent - vinculación Telegram', () => {
 
   beforeEach(async () => {
     estudianteService = jasmine.createSpyObj<EstudianteService>('EstudianteService', [
-      'buscarPorId', 'regenerarQr', 'generarVinculacionTelegram', 'listarApoderadosParaTelegram', 'crearApoderado'
+      'buscarPorId', 'regenerarQr', 'generarVinculacionTelegram', 'listarApoderadosParaTelegram', 'crearApoderado',
+      'buscarApoderadosDisponibles', 'asociarApoderadoExistente'
     ]);
     estudianteService.generarVinculacionTelegram.and.returnValue(
       throwError(() => ({ status: 400, error: { code: 'TELEGRAM_APODERADO_REQUIRED' } }))
@@ -70,5 +71,47 @@ describe('EstudianteDetalleComponent - vinculación Telegram', () => {
     });
     expect(component.apoderadosTelegram()[0].id).toBe(15);
     expect(component.apoderadoExito()).toBe('Apoderado registrado y asociado correctamente.');
+  });
+
+  it('busca únicamente apoderados existentes disponibles para el estudiante', () => {
+    estudianteService.buscarApoderadosDisponibles.and.returnValue(of([
+      { id: 21, nombres: 'Ramiro', apellidos: 'Huamán', telefono: '999111222' }
+    ]));
+    component.busquedaApoderado.set('Ramiro');
+
+    component.buscarApoderadosExistentes();
+
+    expect(estudianteService.buscarApoderadosDisponibles).toHaveBeenCalledWith(7, 'Ramiro');
+    expect(component.apoderadosDisponibles()).toEqual([
+      { id: 21, nombres: 'Ramiro', apellidos: 'Huamán', telefono: '999111222' }
+    ]);
+  });
+
+  it('asocia un apoderado existente sin crear otro registro', () => {
+    estudianteService.asociarApoderadoExistente.and.returnValue(of({
+      id: 21, nombres: 'Ramiro', apellidos: 'Huamán', parentesco: 'PADRE', principal: true, activo: true
+    }));
+    component.seleccionarApoderadoExistente(21);
+    component.relacionApoderadoExistente = { parentesco: 'PADRE', principal: true };
+
+    component.asociarApoderadoExistente();
+
+    expect(estudianteService.asociarApoderadoExistente).toHaveBeenCalledWith(7, 21, {
+      parentesco: 'PADRE', principal: true
+    });
+    expect(estudianteService.crearApoderado).not.toHaveBeenCalled();
+    expect(component.apoderadosTelegram()[0].id).toBe(21);
+    expect(component.apoderadoExito()).toBe('Apoderado existente asociado correctamente.');
+  });
+
+  it('reconoce que un apoderado reutilizado ya tiene Telegram vinculado', () => {
+    estudianteService.listarApoderadosParaTelegram.and.returnValue(of([
+      { id: 21, nombres: 'Ramiro', apellidos: 'Huamán', parentesco: 'PADRE', principal: true, activo: true, telegramVinculado: true }
+    ]));
+
+    component.cargarApoderadosTelegram(7);
+
+    expect(component.apoderadoSeleccionadoId()).toBe(21);
+    expect(component.telegramStatus()).toBe('VINCULADO');
   });
 });

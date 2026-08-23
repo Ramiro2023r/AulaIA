@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -181,6 +182,73 @@ class EstudianteControllerTest {
                 .andExpect(jsonPath("$.activo").value(true));
 
         verify(estudianteApoderadoRepository).save(any(EstudianteApoderado.class));
+    }
+
+    @Test
+    void buscarApoderadosDisponiblesComoAdminDevuelveSoloResultadosNoAsociados() throws Exception {
+        Estudiante estudiante = estudiante(1L, "COD001", seccion(1L, "A"));
+        Apoderado apoderado = new Apoderado();
+        apoderado.setId(9L);
+        apoderado.setNombres("María");
+        apoderado.setApellidos("Pérez");
+        apoderado.setTelefono("999111222");
+        apoderado.setActivo(true);
+        when(estudianteRepository.findById(1L)).thenReturn(Optional.of(estudiante));
+        when(apoderadoRepository.buscarActivosNoAsociados(org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.eq("María"), any(Pageable.class))).thenReturn(List.of(apoderado));
+
+        mockMvc.perform(get("/api/v1/estudiantes/1/apoderados/disponibles")
+                        .param("buscar", "María")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(9))
+                .andExpect(jsonPath("$[0].nombres").value("María"))
+                .andExpect(jsonPath("$[0].telefono").value("999111222"));
+    }
+
+    @Test
+    void asociarApoderadoExistenteComoAdminNoLoDuplica() throws Exception {
+        Estudiante estudiante = estudiante(1L, "COD001", seccion(1L, "A"));
+        Apoderado apoderado = new Apoderado();
+        apoderado.setId(9L);
+        apoderado.setNombres("María");
+        apoderado.setApellidos("Pérez");
+        apoderado.setActivo(true);
+        when(estudianteRepository.findById(1L)).thenReturn(Optional.of(estudiante));
+        when(apoderadoRepository.findById(9L)).thenReturn(Optional.of(apoderado));
+        when(estudianteApoderadoRepository.existsByEstudianteIdAndApoderadoId(1L, 9L)).thenReturn(false);
+        when(estudianteApoderadoRepository.save(any(EstudianteApoderado.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        mockMvc.perform(post("/api/v1/estudiantes/1/apoderados/9")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"parentesco\":\"MADRE\",\"principal\":true}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(9))
+                .andExpect(jsonPath("$.parentesco").value("MADRE"))
+                .andExpect(jsonPath("$.principal").value(true));
+
+        verify(apoderadoRepository, org.mockito.Mockito.never()).save(any(Apoderado.class));
+        verify(estudianteApoderadoRepository).save(any(EstudianteApoderado.class));
+    }
+
+    @Test
+    void asociarApoderadoYaRelacionadoDevuelveConflicto() throws Exception {
+        Estudiante estudiante = estudiante(1L, "COD001", seccion(1L, "A"));
+        Apoderado apoderado = new Apoderado();
+        apoderado.setId(9L);
+        apoderado.setActivo(true);
+        when(estudianteRepository.findById(1L)).thenReturn(Optional.of(estudiante));
+        when(apoderadoRepository.findById(9L)).thenReturn(Optional.of(apoderado));
+        when(estudianteApoderadoRepository.existsByEstudianteIdAndApoderadoId(1L, 9L)).thenReturn(true);
+
+        mockMvc.perform(post("/api/v1/estudiantes/1/apoderados/9")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"parentesco\":\"MADRE\",\"principal\":false}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("PARENT_ALREADY_ASSOCIATED"));
     }
 
     @Test

@@ -15,7 +15,7 @@
       <!-- Nombre -->
       <div>
         <label class="block text-sm font-medium text-on-surface-variant mb-1">Nombre del Grado *</label>
-        <input type="text" formControlName="nombre" class="input-text w-full" placeholder="Ej: Primero A"
+        <input type="text" formControlName="nombre" class="input-text w-full" placeholder="Ej.: 1.º Primaria"
           [class.border-error]="form.get('nombre')?.invalid && form.get('nombre')?.touched">
         <div *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched" class="text-error text-xs mt-1">
           El nombre es requerido y máximo 50 caracteres.
@@ -41,6 +41,7 @@
         <label class="block text-sm font-medium text-on-surface-variant mb-1">Orden (Secuencia) *</label>
         <input type="number" formControlName="orden" class="input-text w-full" placeholder="1" min="1"
           [class.border-error]="form.get('orden')?.invalid && form.get('orden')?.touched">
+        <p class="text-xs text-on-surface-variant mt-1">Usa el número del grado. Ej.: 5.º Primaria → 5.</p>
         <div *ngIf="form.get('orden')?.invalid && form.get('orden')?.touched" class="text-error text-xs mt-1">
           El orden debe ser mayor a 0.
         </div>

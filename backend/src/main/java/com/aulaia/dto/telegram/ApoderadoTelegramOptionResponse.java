@@ -7,5 +7,6 @@ public record ApoderadoTelegramOptionResponse(
         String apellidos,
         String parentesco,
         boolean principal,
-        boolean activo) {
+        boolean activo,
+        boolean telegramVinculado) {
 }

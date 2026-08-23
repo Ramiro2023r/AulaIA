@@ -73,6 +73,17 @@ export class EstudianteService {
     return this.http.post<ApoderadoTelegramOption>(`${this.apiUrl}/${estudianteId}/apoderados`, request);
   }
 
+  buscarApoderadosDisponibles(estudianteId: number, buscar: string): Observable<ApoderadoDisponible[]> {
+    let params = new HttpParams();
+    if (buscar.trim()) params = params.set('buscar', buscar.trim());
+    return this.http.get<ApoderadoDisponible[]>(`${this.apiUrl}/${estudianteId}/apoderados/disponibles`, { params });
+  }
+
+  asociarApoderadoExistente(estudianteId: number, apoderadoId: number,
+                            request: AsociarApoderadoRequest): Observable<ApoderadoTelegramOption> {
+    return this.http.post<ApoderadoTelegramOption>(`${this.apiUrl}/${estudianteId}/apoderados/${apoderadoId}`, request);
+  }
+
   generarVinculacionTelegram(estudianteId: number, apoderadoId: number): Observable<TelegramVinculacionLinkResponse> {
     return this.http.post<TelegramVinculacionLinkResponse>(`${this.apiUrl}/${estudianteId}/telegram/vinculacion`, {
       apoderadoId
@@ -93,12 +104,25 @@ export interface ApoderadoTelegramOption {
   parentesco: string;
   principal: boolean;
   activo: boolean;
+  telegramVinculado?: boolean;
 }
 
 export interface ApoderadoEstudianteRequest {
   nombres: string;
   apellidos: string;
   telefono?: string | null;
+  parentesco: 'MADRE' | 'PADRE' | 'TUTOR' | 'OTRO';
+  principal: boolean;
+}
+
+export interface ApoderadoDisponible {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  telefono: string | null;
+}
+
+export interface AsociarApoderadoRequest {
   parentesco: 'MADRE' | 'PADRE' | 'TUTOR' | 'OTRO';
   principal: boolean;
 }

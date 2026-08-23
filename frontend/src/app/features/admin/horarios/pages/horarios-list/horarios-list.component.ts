@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../../../shared/components/ui/page-header/page-header.component';
 import { HorarioService, HorarioResponse } from '../../../../../core/services/horario.service';
+import { SeccionService, SeccionResponse } from '../../../../../core/services/seccion.service';
 import { ToastService } from '../../../../../shared/services/toast.service';
 
 @Component({
@@ -52,10 +53,12 @@ import { ToastService } from '../../../../../shared/services/toast.service';
 })
 export class HorariosListComponent implements OnInit {
   private horarioService = inject(HorarioService);
+  private seccionService = inject(SeccionService);
   private toast = inject(ToastService);
   private router = inject(Router);
 
   horarios = signal<HorarioResponse[]>([]);
+  private seccionesPorId = signal<Map<number, SeccionResponse>>(new Map());
   loading = signal(false);
   
   viewMode = signal<'lista' | 'semana'>('semana');
@@ -83,6 +86,13 @@ export class HorariosListComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarHorarios();
+    this.cargarSecciones();
+  }
+
+  private cargarSecciones(): void {
+    this.seccionService.listar().subscribe({
+      next: (secciones) => this.seccionesPorId.set(new Map(secciones.map(seccion => [seccion.id, seccion])))
+    });
   }
 
   cargarHorarios(): void {
@@ -120,5 +130,12 @@ export class HorariosListComponent implements OnInit {
     // time format is HH:mm:ss, just return HH:mm
     if (!time) return '';
     return time.substring(0, 5);
+  }
+
+  etiquetaSeccion(horario: HorarioResponse): string {
+    const seccion = this.seccionesPorId().get(horario.seccion.id);
+    return seccion?.grado?.nombre
+      ? `${seccion.grado.nombre} — Sección ${horario.seccion.nombre}`
+      : `Sección ${horario.seccion.nombre}`;
   }
 }

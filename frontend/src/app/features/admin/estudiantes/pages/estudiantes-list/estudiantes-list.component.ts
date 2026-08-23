@@ -26,6 +26,7 @@ export class EstudiantesListComponent implements OnInit, OnDestroy {
 
   estudiantes = signal<EstudianteResponse[]>([]);
   secciones = signal<SeccionResponse[]>([]);
+  private seccionesPorId = signal<Map<number, SeccionResponse>>(new Map());
   loading = signal(false);
 
   // Filters
@@ -53,7 +54,10 @@ export class EstudiantesListComponent implements OnInit, OnDestroy {
 
   cargarSecciones(): void {
     this.seccionService.listar().subscribe({
-      next: (data) => this.secciones.set(data),
+      next: (data) => {
+        this.secciones.set(data);
+        this.seccionesPorId.set(new Map(data.map(seccion => [seccion.id, seccion])));
+      },
       error: () => this.toast.show('Error al cargar secciones', 'error')
     });
   }
@@ -124,5 +128,12 @@ export class EstudiantesListComponent implements OnInit, OnDestroy {
         error: () => this.toast.show('Error al desactivar estudiante', 'error')
       });
     }
+  }
+
+  etiquetaSeccion(estudiante: EstudianteResponse): string {
+    const seccion = this.seccionesPorId().get(estudiante.seccion.id);
+    return seccion?.grado?.nombre
+      ? `${seccion.grado.nombre} — Sección ${estudiante.seccion.nombre}`
+      : `Sección ${estudiante.seccion.nombre}`;
   }
 }

@@ -5,6 +5,8 @@ import com.aulaia.dto.estudiante.EstudianteRequest;
 import com.aulaia.dto.estudiante.EstudianteResponse;
 import com.aulaia.dto.estudiante.RegenerarQrResponse;
 import com.aulaia.dto.estudiante.ApoderadoEstudianteRequest;
+import com.aulaia.dto.estudiante.ApoderadoDisponibleResponse;
+import com.aulaia.dto.estudiante.AsociarApoderadoRequest;
 import com.aulaia.dto.telegram.ApoderadoTelegramOptionResponse;
 import com.aulaia.entity.EstudianteApoderado;
 import com.aulaia.exception.BusinessException;
@@ -250,6 +252,28 @@ public class EstudianteController {
                 .body(estudianteApoderadoService.crearYAsociar(estudianteId, request));
     }
 
+    @GetMapping("/{estudianteId}/apoderados/disponibles")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Buscar apoderados existentes para asociar",
+            description = "Devuelve hasta 20 apoderados activos que todavía no están asociados al estudiante.")
+    public ResponseEntity<List<ApoderadoDisponibleResponse>> buscarApoderadosDisponibles(
+            @PathVariable Long estudianteId,
+            @RequestParam(required = false) String buscar) {
+        return ResponseEntity.ok(estudianteApoderadoService.buscarDisponibles(estudianteId, buscar));
+    }
+
+    @PostMapping("/{estudianteId}/apoderados/{apoderadoId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Asociar apoderado existente",
+            description = "Asocia un apoderado ya registrado al estudiante sin duplicar su cuenta de Telegram.")
+    public ResponseEntity<ApoderadoTelegramOptionResponse> asociarApoderadoExistente(
+            @PathVariable Long estudianteId,
+            @PathVariable Long apoderadoId,
+            @Valid @RequestBody AsociarApoderadoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(estudianteApoderadoService.asociarExistente(estudianteId, apoderadoId, request));
+    }
+
     @PostMapping("/{estudianteId}/telegram/vinculacion")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DOCENTE')")
     @Operation(summary = "Generar invitación para Telegram",
@@ -318,6 +342,13 @@ public class EstudianteController {
                 relacion.getApoderado().getApellidos(),
                 relacion.getParentesco().name(),
                 relacion.isPrincipal(),
-                relacion.getApoderado().isActivo());
+                relacion.getApoderado().isActivo(),
+                tieneTelegramVinculado(relacion.getApoderado()));
+    }
+
+    private boolean tieneTelegramVinculado(com.aulaia.entity.Apoderado apoderado) {
+        return apoderado.getTelegramChatId() != null
+                && !apoderado.getTelegramChatId().isBlank()
+                && apoderado.getTelegramVinculadoAt() != null;
     }
 }

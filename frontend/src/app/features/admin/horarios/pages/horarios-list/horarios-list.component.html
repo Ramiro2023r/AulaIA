@@ -37,7 +37,7 @@
             <th class="p-3 font-medium">Día</th>
             <th class="p-3 font-medium">Horario</th>
             <th class="p-3 font-medium">Curso</th>
-            <th class="p-3 font-medium">Sección</th>
+            <th class="p-3 font-medium">Grado / Sección</th>
             <th class="p-3 font-medium">Docente</th>
             <th class="p-3 font-medium text-right">Acciones</th>
           </tr>
@@ -52,7 +52,7 @@
               {{ formatTime(h.horaInicio) }} - {{ formatTime(h.horaFin) }}
             </td>
             <td class="p-3 text-on-surface">{{ h.curso.nombre }}</td>
-            <td class="p-3 text-on-surface">{{ h.seccion.nombre }}</td>
+            <td class="p-3 text-on-surface">{{ etiquetaSeccion(h) }}</td>
             <td class="p-3 text-on-surface">{{ h.docente.apellidos }}, {{ h.docente.nombres }}</td>
             <td class="p-3 text-right">
               <button class="btn btn-text text-primary w-10 h-10 p-0 rounded-full hover:bg-primary/10" (click)="editarHorario(h.id)" title="Editar">
@@ -90,9 +90,11 @@
              class="horario-card shadow-sm"
              (click)="editarHorario(h.id)"
              title="Editar bloque">
-          <div class="font-bold mb-1 border-b border-primary/20 pb-1 flex justify-between items-center">
+          <div class="font-bold mb-1 border-b border-primary/20 pb-1">
             <span>{{ h.curso.nombre }}</span>
-            <span class="text-[10px] bg-surface/30 px-1 rounded">{{ h.seccion.nombre }}</span>
+          </div>
+          <div class="text-[10px] bg-surface/30 px-1 rounded mb-1 w-fit">
+            {{ etiquetaSeccion(h) }}
           </div>
           <div class="text-[11px] font-mono mb-1 flex items-center gap-1 opacity-90">
             <span class="material-symbols-rounded text-[12px]">schedule</span>

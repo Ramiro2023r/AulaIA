@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { PageHeaderComponent } from '../../../../../shared/components/ui/page-header/page-header.component';
-import { ApoderadoEstudianteRequest, ApoderadoTelegramOption, EstudianteService, EstudianteResponse } from '../../../../../core/services/estudiante.service';
+import { ApoderadoDisponible, ApoderadoEstudianteRequest, ApoderadoTelegramOption, AsociarApoderadoRequest, EstudianteService, EstudianteResponse } from '../../../../../core/services/estudiante.service';
 import { environment } from '../../../../../../environments/environment';
 import * as QRCode from 'qrcode';
 
@@ -45,6 +45,16 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
   isSavingApoderado = signal(false);
   apoderadoError = signal<string | null>(null);
   apoderadoExito = signal<string | null>(null);
+  modoGestionApoderado = signal<'nuevo' | 'existente' | null>(null);
+  busquedaApoderado = signal('');
+  apoderadosDisponibles = signal<ApoderadoDisponible[]>([]);
+  apoderadoExistenteSeleccionadoId = signal<number | null>(null);
+  isSearchingApoderados = signal(false);
+  isAssociatingApoderado = signal(false);
+  relacionApoderadoExistente: AsociarApoderadoRequest = {
+    parentesco: 'MADRE',
+    principal: false,
+  };
   nuevoApoderado: ApoderadoEstudianteRequest = {
     nombres: '',
     apellidos: '',
@@ -86,7 +96,9 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
     this.estudianteService.listarApoderadosParaTelegram(estudianteId).subscribe({
       next: (apoderados) => {
         this.apoderadosTelegram.set(apoderados);
-        this.apoderadoSeleccionadoId.set(apoderados.find(apoderado => apoderado.activo)?.id ?? null);
+        const seleccionado = apoderados.find(apoderado => apoderado.activo) ?? null;
+        this.apoderadoSeleccionadoId.set(seleccionado?.id ?? null);
+        this.actualizarEstadoTelegram(seleccionado);
       },
       error: () => {
         this.apoderadosTelegram.set([]);
@@ -100,6 +112,8 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
     const value = (event.target as HTMLSelectElement).value;
     this.apoderadoSeleccionadoId.set(value ? Number(value) : null);
     this.telegramError.set(null);
+    const seleccionado = this.apoderadosTelegram().find(apoderado => apoderado.id === this.apoderadoSeleccionadoId()) ?? null;
+    this.actualizarEstadoTelegram(seleccionado);
   }
 
   cargarQrBlob(id: number, nocache = false): void {
@@ -125,6 +139,94 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
 
   setTab(tab: 'datos' | 'apoderados' | 'qr'): void {
     this.activeTab.set(tab);
+  }
+
+  abrirRegistroApoderado(): void {
+    this.modoGestionApoderado.set('nuevo');
+    this.limpiarMensajesApoderado();
+  }
+
+  abrirBusquedaApoderado(): void {
+    this.modoGestionApoderado.set('existente');
+    this.busquedaApoderado.set('');
+    this.apoderadosDisponibles.set([]);
+    this.apoderadoExistenteSeleccionadoId.set(null);
+    this.relacionApoderadoExistente = { parentesco: 'MADRE', principal: false };
+    this.limpiarMensajesApoderado();
+  }
+
+  cerrarGestionApoderado(): void {
+    this.modoGestionApoderado.set(null);
+    this.apoderadosDisponibles.set([]);
+    this.apoderadoExistenteSeleccionadoId.set(null);
+    this.limpiarMensajesApoderado();
+  }
+
+  buscarApoderadosExistentes(): void {
+    const est = this.estudiante();
+    if (!est || this.isSearchingApoderados()) return;
+
+    this.isSearchingApoderados.set(true);
+    this.apoderadoError.set(null);
+    this.apoderadoExito.set(null);
+    this.estudianteService.buscarApoderadosDisponibles(est.id, this.busquedaApoderado()).subscribe({
+      next: (apoderados) => {
+        this.apoderadosDisponibles.set(apoderados);
+        this.apoderadoExistenteSeleccionadoId.set(null);
+        this.isSearchingApoderados.set(false);
+      },
+      error: () => {
+        this.apoderadosDisponibles.set([]);
+        this.isSearchingApoderados.set(false);
+        this.apoderadoError.set('No se pudieron buscar apoderados existentes. Inténtalo nuevamente.');
+      }
+    });
+  }
+
+  seleccionarApoderadoExistente(id: number): void {
+    this.apoderadoExistenteSeleccionadoId.set(id);
+    this.apoderadoError.set(null);
+  }
+
+  asociarApoderadoExistente(): void {
+    const est = this.estudiante();
+    const apoderadoId = this.apoderadoExistenteSeleccionadoId();
+    if (!est || apoderadoId === null || this.isAssociatingApoderado()) {
+      if (apoderadoId === null) {
+        this.apoderadoError.set('Selecciona un apoderado para asociarlo.');
+      }
+      return;
+    }
+
+    this.isAssociatingApoderado.set(true);
+    this.apoderadoError.set(null);
+    this.apoderadoExito.set(null);
+    this.estudianteService.asociarApoderadoExistente(est.id, apoderadoId, this.relacionApoderadoExistente).subscribe({
+      next: (apoderado) => {
+        this.apoderadosTelegram.update(actuales => [...actuales, apoderado]);
+        if (this.apoderadoSeleccionadoId() === null && apoderado.activo) {
+          this.apoderadoSeleccionadoId.set(apoderado.id);
+        }
+        this.isAssociatingApoderado.set(false);
+        this.modoGestionApoderado.set(null);
+        this.apoderadosDisponibles.set([]);
+        this.apoderadoExistenteSeleccionadoId.set(null);
+        this.apoderadoExito.set('Apoderado existente asociado correctamente.');
+        this.actualizarEstadoTelegram(apoderado);
+      },
+      error: (err) => {
+        this.isAssociatingApoderado.set(false);
+        if (err.status === 403) {
+          this.apoderadoError.set('Solo un administrador puede asociar apoderados.');
+        } else if (err.error?.code === 'PARENT_ALREADY_ASSOCIATED') {
+          this.apoderadoError.set('Este apoderado ya está asociado al estudiante.');
+        } else if (err.error?.code === 'PARENT_INACTIVE') {
+          this.apoderadoError.set('El apoderado seleccionado está inactivo.');
+        } else {
+          this.apoderadoError.set('No se pudo asociar el apoderado. Inténtalo nuevamente.');
+        }
+      }
+    });
   }
 
   guardarApoderado(): void {
@@ -166,6 +268,17 @@ export class EstudianteDetalleComponent implements OnInit, OnDestroy {
           : 'No se pudo registrar el apoderado. Inténtalo nuevamente.');
       }
     });
+  }
+
+  private limpiarMensajesApoderado(): void {
+    this.apoderadoError.set(null);
+    this.apoderadoExito.set(null);
+  }
+
+  private actualizarEstadoTelegram(apoderado: ApoderadoTelegramOption | null): void {
+    this.telegramQrBase64.set(null);
+    this.telegramExpiresAt.set(null);
+    this.telegramStatus.set(apoderado?.telegramVinculado ? 'VINCULADO' : 'NO_VINCULADO');
   }
 
   descargarQR(): void {
